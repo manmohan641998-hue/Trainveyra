@@ -114,6 +114,20 @@
     .demo-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
     .demo{background:#06182b;border:1px solid #153b5d;border-radius:17px;padding:20px}
     .map{min-height:410px;position:relative;overflow:hidden;padding:0!important;background:#e9e5d8}
+    .map-fullscreen-btn{border:0;background:rgba(6,20,34,.9);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 11px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+    .map-fullscreen-btn:hover{background:#1878ff}
+    .map:fullscreen{width:100vw;height:100vh;border-radius:0}
+    .map:fullscreen #liveMap{position:absolute;inset:0}
+    .map:fullscreen .map-header{top:18px;left:18px;right:18px}
+    .map:fullscreen .map-legend{bottom:18px;left:18px}
+    .live-segment{stroke-dasharray:10 9;animation:segmentFlow 1s linear infinite}
+    .stop-dot.current{background:#22c55e;animation:dotPulse .9s ease-in-out infinite}
+    .stop-dot.departed{background:#ef4444}
+    .stop-dot.upcoming{background:#f6c453}
+    .hidden-stop{display:none}
+    .live-update-badge{font-size:10px;color:#78a7c8;margin-left:auto}
+    @keyframes segmentFlow{to{stroke-dashoffset:-19}}
+
     #liveMap{position:absolute;inset:0;z-index:1;background:#e9e5d8}
     .map-header{position:absolute;top:14px;left:14px;right:14px;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
     .map-header>*{pointer-events:auto}
@@ -406,6 +420,7 @@ footer{background:rgba(1,8,15,.7)}
           <div class="map-header">
             <span class="live-pill-map"><i></i> Live Map View</span>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+              <button class="map-fullscreen-btn" onclick="toggleMapFullscreen()" title="Full screen map">⛶ Full screen</button>
               <label class="map-filter-toggle"><input type="checkbox" id="showAllStopsToggle" onchange="toggleStopVisibility()"> Show all stations</label>
               <div class="map-toggle">
                 <button class="toggle-btn active" id="btnMapView" onclick="setMapView('map')">🗺️ Map</button>
@@ -426,7 +441,7 @@ footer{background:rgba(1,8,15,.7)}
           <div class="demo-top"><h3 id="statusTitle">Search a train to begin</h3><div class="tabs"><button class="tab active">Live</button></div></div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
             <label for="statusDate" style="font-size:11px;color:#8fa8c0">Journey date (for daily trains):</label>
-            <input id="statusDate" type="date" style="background:#0b243d;color:#fff;border:1px solid #1d4566;border-radius:8px;padding:6px 9px;font-size:12px" onchange="if(lastSearchedTrainNo) loadLiveTrain(lastSearchedTrainNo)">
+            <input id="statusDate" type="date" style="background:#0b243d;color:#fff;border:1px solid #1d4566;border-radius:8px;padding:6px 9px;font-size:12px" onchange="if(lastSearchedTrainNo) loadLiveTrain(lastSearchedTrainNo,{force:true,forceFullRender:true})">
           </div>
           <div id="statusInfoRow" style="display:flex;gap:18px;margin-bottom:12px;color:#9eb4ca;font-size:12px;flex-wrap:wrap"><span>Enter a train number/name above and hit Search</span></div>
           <label class="map-filter-toggle" style="margin-bottom:14px" id="timelineFilterWrap">
@@ -492,7 +507,7 @@ footer{background:rgba(1,8,15,.7)}
         </div>
         <div class="form" style="grid-template-columns:1fr 1fr;gap:12px">
           <input id="seatDate" type="date" aria-label="Journey date">
-          <select id="seatClass"><option>SL</option><option>3A</option><option>2A</option><option>1A</option><option>CC</option><option>2S</option></select>
+          <select id="seatClass"><option>SL</option><option>3A</option><option>3E</option><option>2A</option><option>1A</option><option>CC</option><option>EC</option><option>2S</option></select>
         </div>
         <div class="form" style="grid-template-columns:1fr;gap:12px">
           <select id="seatQuota" aria-label="Quota">
@@ -545,7 +560,7 @@ footer{background:rgba(1,8,15,.7)}
   // LIVE MAP (Leaflet) — replace demo route/marker data with your
   // authorized railway-data API response when it is connected.
   // ============================================================
-  let liveMap, trainMarker, mapTiles, satTiles, routeLine, startMarker, endMarker;
+  let liveMap, trainMarker, mapTiles, satTiles, routeLine, liveSegmentLine, startMarker, endMarker;
   const startIcon = ()=>L.divIcon({className:'', html:'<div class="station-pin green"></div>', iconSize:[16,16]});
   const endIcon = ()=>L.divIcon({className:'', html:'<div class="station-pin red"></div>', iconSize:[16,16]});
   const trainIcon = ()=>L.divIcon({className:'', html:'<div class="train-pin">🚆</div>', iconSize:[30,30], iconAnchor:[15,15]});
@@ -559,7 +574,7 @@ footer{background:rgba(1,8,15,.7)}
   let showAllStops=false;      // hide non-halt "crossing" stations by default
   let lastRenderedStops=null, lastRenderedMeta=null, lastCurrentLatLng=null;
   let lastSearchedTrainNo=null, lastRouteData=null;
-  let lastRouteGeometry=null;
+  let lastRouteGeometry=null, livePollTimer=null, liveRequestSeq=0, trainAnimationFrame=null;
 
   function initLiveMap(){
     const el = document.getElementById('liveMap');
@@ -589,64 +604,99 @@ footer{background:rgba(1,8,15,.7)}
   // currentPos: [lat,lng] interpolated live position
   // meta: {number, name, speed, currentName, nextName, atStation}
   function renderRouteOnMap(stops, currentPos, meta, geometryCoords){
-    if(!liveMap) return;
+    if(!liveMap || !stops || !stops.length) return;
     lastRenderedStops=stops; lastRenderedMeta=meta;
     if(routeLine) liveMap.removeLayer(routeLine);
+    if(liveSegmentLine) liveMap.removeLayer(liveSegmentLine);
     if(startMarker) liveMap.removeLayer(startMarker);
     if(endMarker) liveMap.removeLayer(endMarker);
     if(trainMarker) liveMap.removeLayer(trainMarker);
     stopMarkers.forEach(m=>liveMap.removeLayer(m)); stopMarkers=[];
 
-    const coords = stops.map(s=>[s.lat,s.lng]);
-    // The line itself should only follow real halting stations — crossing points can carry
-    // noisy/duplicate coordinates that make the line zig-zag and look like a solid black band
-    // once zoomed out. Non-halt points are still shown as small dots (see below); they just
-    // don't get connected into the route line.
-    const haltCoords = stops.filter(s=>s.isHalt!==false).map(s=>[s.lat,s.lng]);
-    // Prefer RailRadar's real track geometry (high-density GIS LineString) so the blue
-    // route follows the railway track instead of drawing straight station-to-station chords.
-    // Fall back to halt coordinates only if geometry is unavailable.
-    const trackCoords = Array.isArray(geometryCoords) && geometryCoords.length > 1 ? geometryCoords : (haltCoords.length>1 ? haltCoords : coords);
-    routeLine = L.polyline(trackCoords, {color:'#1878ff', weight:4, opacity:.95, lineJoin:'round', lineCap:'round', smoothFactor:.35}).addTo(liveMap);
+    const coords = stops.filter(s=>Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lng)))
+      .map(s=>[Number(s.lat),Number(s.lng)]);
+    if(coords.length<2) return;
+
+    const haltCoords = stops.filter(s=>s.isHalt!==false && Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lng)))
+      .map(s=>[Number(s.lat),Number(s.lng)]);
+    const trackCoords = Array.isArray(geometryCoords) && geometryCoords.length > 1
+      ? geometryCoords : (haltCoords.length>1 ? haltCoords : coords);
+
+    routeLine = L.polyline(trackCoords, {
+      color:'#1878ff', weight:4, opacity:.95, lineJoin:'round', lineCap:'round', smoothFactor:.35
+    }).addTo(liveMap);
+
+    // Green blinking segment = the exact section the train is travelling through.
+    if(meta.segmentStart && meta.segmentEnd){
+      liveSegmentLine = L.polyline([meta.segmentStart, meta.segmentEnd], {
+        color:'#22c55e', weight:7, opacity:.95, lineCap:'round',
+        dashArray:'10 9', className:'live-segment'
+      }).addTo(liveMap);
+    }
 
     startMarker = L.marker(coords[0], {icon:startIcon()}).addTo(liveMap)
       .bindTooltip(stops[0].stationName||'Start', {permanent:true, direction:'top', offset:[0,-6], className:'station-tt'});
     endMarker = L.marker(coords[coords.length-1], {icon:endIcon()}).addTo(liveMap)
       .bindTooltip(stops[stops.length-1].stationName||'End', {permanent:true, direction:'top', offset:[0,-6], className:'station-tt'});
 
-    // Intermediate stops: current = green, already departed/crossed = red, upcoming = yellow.
-    // Non-halt "crossing" points are hidden by default; the "Show all stations" toggle reveals them.
     stops.slice(1,-1).forEach(s=>{
+      if(!Number.isFinite(Number(s.lat))||!Number.isFinite(Number(s.lng))) return;
       const cls = s.isCurrent ? 'current' : (s.status==='departed'||s.status==='arrived') ? 'departed' : 'upcoming';
       const isMinor = s.isHalt===false && !s.isCurrent && !s.isNext;
       const hideCls = (isMinor && !showAllStops) ? ' hidden-stop' : '';
-      const marker = L.marker([s.lat,s.lng], {icon:L.divIcon({className:'', html:`<div class="stop-dot ${cls}${hideCls}"></div>`, iconSize:[15,15], iconAnchor:[7,7]})}).addTo(liveMap);
-      // Label halting stations (has a platform, or is a scheduled halt) or the current/next station, to keep the map readable.
-      if((s.platform || s.isHalt || s.isCurrent || s.isNext) && !isMinor){
+      const marker = L.marker([Number(s.lat),Number(s.lng)], {
+        icon:L.divIcon({className:'', html:`<div class="stop-dot ${cls}${hideCls}"></div>`, iconSize:[15,15], iconAnchor:[7,7]})
+      }).addTo(liveMap);
+      if((s.platform || s.isHalt || s.isCurrent || s.isNext || showAllStops) && !isMinor){
         marker.bindTooltip(s.stationName, {permanent:true, direction:'top', offset:[0,-4], className:'stop-label'});
       }
       stopMarkers.push(marker);
     });
 
-    // "Now at" only when the train is actually sitting at a station; once it has left, show Departed + Next.
     const nowNext = meta.atStation
       ? `<span class="now-next">Now at: <b>${meta.currentName||'—'}</b></span>`
       : `<span class="now-next">Departed: <b>${meta.currentName||'—'}</b></span><span class="now-next">Next: <b>${meta.nextName||'—'}</b></span>`;
-    trainMarker = L.marker(currentPos, {icon:trainIcon()}).addTo(liveMap)
-      .bindTooltip(`<b>${meta.number} ${meta.name||''}</b><span>Speed: ${meta.speed!=null?meta.speed+' km/h':'—'}</span>${nowNext}`,
+    trainMarker = L.marker(currentPos, {icon:trainIcon(), zIndexOffset:1000}).addTo(liveMap)
+      .bindTooltip(`<b>${meta.number} ${meta.name||''}</b><span>Speed: ${meta.speed!=null?meta.speed+' km/h':'—'}</span>${nowNext}<span style="display:block;font-size:10px;color:#718aa3;margin-top:3px">Updated ${meta.updatedAt||'just now'}</span>`,
         {permanent:true, direction:'right', offset:[16,-4], className:'train-tt'});
 
-    liveMap.fitBounds(coords, {padding:[30,30]});
+    liveMap.fitBounds(L.latLngBounds(trackCoords), {padding:[55,55], maxZoom:9});
   }
+
+  function animateTrainTo(target, meta){
+    if(!liveMap || !trainMarker || !target) return;
+    const from=trainMarker.getLatLng();
+    const to=L.latLng(target[0],target[1]);
+    const duration=7000;
+    const start=performance.now();
+    if(trainAnimationFrame) cancelAnimationFrame(trainAnimationFrame);
+    function frame(now){
+      const p=Math.min(1,(now-start)/duration);
+      const eased=p<.5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2;
+      const lat=from.lat+(to.lat-from.lat)*eased;
+      const lng=from.lng+(to.lng-from.lng)*eased;
+      trainMarker.setLatLng([lat,lng]);
+      if(p<1) trainAnimationFrame=requestAnimationFrame(frame);
+    }
+    trainAnimationFrame=requestAnimationFrame(frame);
+  }
+
+  function toggleMapFullscreen(){
+    const mapEl=document.querySelector('.demo.map');
+    if(!mapEl) return;
+    if(document.fullscreenElement) document.exitFullscreen?.();
+    else mapEl.requestFullscreen?.();
+    setTimeout(()=>liveMap?.invalidateSize(),250);
+  }
+  document.addEventListener('fullscreenchange',()=>setTimeout(()=>liveMap?.invalidateSize(),250));
 
   // Toggle between halts-only and every route point, on both the map and the station list below it.
   function toggleStopVisibility(){
     const mapCb=document.getElementById('showAllStopsToggle'), listCb=document.getElementById('showAllStopsToggleList');
-    showAllStops = mapCb.checked || listCb.checked;
-    mapCb.checked = showAllStops; listCb.checked = showAllStops;
-    // Re-fetch rather than just re-filter: haltsOnly is sent to the API itself now,
-    // so toggling needs a fresh request to get (or drop) the crossing-station data.
-    if(lastSearchedTrainNo) loadLiveTrain(lastSearchedTrainNo);
+    showAllStops = !!(mapCb?.checked || listCb?.checked);
+    if(mapCb) mapCb.checked=showAllStops;
+    if(listCb) listCb.checked=showAllStops;
+    if(lastSearchedTrainNo) loadLiveTrain(lastSearchedTrainNo, {force:true});
   }
 
   function setMapView(mode){
@@ -726,100 +776,151 @@ footer{background:rgba(1,8,15,.7)}
 
   // Renders the station-by-station list. Halt-only by default (showAllStops toggles this);
   // current = green, already departed/crossed = red, upcoming = yellow.
-  function renderTimeline(stops, prevCode, nextCode){
+  function renderTimeline(stops, currentCode, nextCode){
     const tlEl=document.getElementById('statusTimeline');
-    const visible = showAllStops ? stops : stops.filter(s=>s.isHalt!==false || s.stationCode===prevCode || s.stationCode===nextCode);
-    tlEl.innerHTML = visible.map(s=>{
-      const isCurrent = s.stationCode===prevCode;
-      const isNext = s.stationCode===nextCode;
-      const isPast = (s.status==='departed'||s.status==='arrived') && !isCurrent;
-      const railColor = isCurrent ? '#22c55e' : isPast ? '#ef4444' : '#f6c453';
-      const delayVal = s.delayArrival!=null?s.delayArrival:s.delayDeparture;
-      const d = s.status==='upcoming' ? formatDelay(delayVal,{fallback:'ETA'}) : formatDelay(delayVal);
-      const statusLabel = isCurrent ? 'Currently Here' : s.status==='departed'?'Departed':s.status==='arrived'?'Arrived':isNext?'Next Stop':'Upcoming';
-      return `<div class="stop"${isCurrent?' style="background:rgba(34,197,94,.08);border-radius:8px;padding:4px 6px;margin:-4px -6px"':''}><span class="rail" style="border-color:${railColor}"></span><div><b>${s.stationName||s.stationCode}</b><small>${statusLabel}${s.platform?(' • PF '+s.platform):''}${s.isHalt===false?' • Crossing':''}</small></div><time style="color:${d.color}">${d.text}</time></div>`;
+    const visible=showAllStops ? stops : stops.filter(s=>s.isHalt!==false || s.stationCode===currentCode || s.stationCode===nextCode);
+    tlEl.innerHTML=visible.map(s=>{
+      const isCurrent=s.stationCode===currentCode;
+      const isNext=s.stationCode===nextCode;
+      const isPast=!isCurrent && (s.status==='departed'||s.status==='arrived');
+      const railColor=isCurrent?'#22c55e':isPast?'#ef4444':'#f6c453';
+      const delayVal=s.delayArrival!=null?s.delayArrival:s.delayDeparture;
+      const d=s.status==='upcoming'?formatDelay(delayVal,{fallback:'ETA'}):formatDelay(delayVal);
+      const statusLabel=isCurrent?'Currently Here':isPast?'Departed':isNext?'Next Stop':'Upcoming';
+      const extra=s.isHalt===false?' • Non-stop':(s.platform?' • PF '+s.platform:'');
+      return `<div class="stop"${isCurrent?' style="background:rgba(34,197,94,.08);border-radius:8px;padding:4px 6px;margin:-4px -6px"':''}><span class="rail" style="border-color:${railColor}"></span><div><b>${s.stationName||s.stationCode}</b><small>${statusLabel}${extra}</small></div><time style="color:${d.color}">${d.text}</time></div>`;
     }).join('');
   }
 
-  async function loadLiveTrain(number){
+  async function loadLiveTrain(number, opts){
+    opts=opts||{};
     const titleEl=document.getElementById('statusTitle'), infoEl=document.getElementById('statusInfoRow');
     lastSearchedTrainNo=number;
+    const requestId=++liveRequestSeq;
     const dateVal=(document.getElementById('statusDate')||{}).value;
-    // haltsOnly is a server-side filter (RailRadar API) — ask for only real halting
-    // stations by default, and the full list (incl. non-halt crossings) only when the
-    // "Show all stations" toggle is on. This is more reliable than filtering client-side
-    // on isHalt, and it's also what keeps the route line clean (see renderRouteOnMap).
-    const params = { includeCoordinates:true, haltsOnly: !showAllStops };
+    const params = {
+      includeCoordinates:true,
+      haltsOnly: !showAllStops,
+      authoritative: !!opts.force,
+      geometry: true,
+      format: 'geojson'
+    };
     if(dateVal) params.date=dateVal;
+
     const data = await railradarGet('/trains/'+number+'/live', params);
-    // Fetch the actual railway track geometry separately. The live endpoint gives station
-    // points, while /route provides the high-density GIS LineString for the map.
-    let geometryCoords=null;
-    try{
-      const geo=await railradarGet('/trains/'+number+'/route', {format:'geojson', stops:false});
-      const raw=geo && geo.geojson && geo.geojson.geometry && geo.geojson.geometry.coordinates;
-      if(Array.isArray(raw)){
-        geometryCoords=raw.filter(c=>Array.isArray(c)&&c.length>=2).map(c=>[Number(c[1]),Number(c[0])]).filter(c=>Number.isFinite(c[0])&&Number.isFinite(c[1]));
-      }
-    }catch(e){
-      geometryCoords=null;
-    }
-    lastRouteGeometry=geometryCoords;
+    if(requestId!==liveRequestSeq) return;
     const t=data.train||{};
     titleEl.textContent = number+' '+(t.name||data.trainName||'');
     const cur=data.currentLocation||{};
-    const stops=(data.route||[]);
+    const stops=(data.route||[]).map((s,i)=>({...s, _routeIndex:i}));
+    if(!stops.length) throw new Error('No route stations were returned for this train.');
 
-    // currentLocation.stationCode is the authoritative "where the train actually is" field —
-    // in real responses it can be one station AHEAD of `previousHalt` (e.g. train has departed
-    // AYC but previousHalt still says AY), so prefer it as the interpolation anchor.
-    const prevCode = cur.stationCode || (data.previousHalt||{}).stationCode;
-    const nextCode=(data.nextHalt||{}).stationCode;
-    const prevStop=stops.find(s=>s.stationCode===prevCode);
-    const nextStop=stops.find(s=>s.stationCode===nextCode);
-    const currentName = cur.stationName || (prevStop && prevStop.stationName) || cur.stationCode || '—';
-    const nextName = (nextStop && nextStop.stationName) || '—';
-    // The train is only "at" a station while it hasn't departed yet; once it departs, show Departed + Next only.
-    const atStation = !!cur.stationCode && cur.status!=='departed';
-    // Real responses don't always put speedKmh on currentLocation — fall back to the speed
-    // recorded for the segment leaving the current/previous halting station.
-    const speedKmh = cur.speedKmh!=null ? cur.speedKmh : (prevStop && prevStop.speedToNextStationKmph!=null ? prevStop.speedToNextStationKmph : null);
+    // RailRadar's currentLocation.stationCode is the telemetry anchor. When status=departed,
+    // it is the station the train has LEFT, so "Currently Here" must never be assigned to it.
+    // The next station is therefore the next route item after that anchor, not nextHalt blindly.
+    let anchorIndex=stops.findIndex(s=>s.stationCode===cur.stationCode);
+    if(anchorIndex<0 && data.previousHalt?.stationCode) anchorIndex=stops.findIndex(s=>s.stationCode===data.previousHalt.stationCode);
+    if(anchorIndex<0) anchorIndex=0;
 
-    const overall = formatDelay(data.delayMinutes);
-    const startedLabel = data.startDate ? `<span>🗓 Started: <strong style="color:#fff">${data.startDate}</strong></span>` : '';
-    const locationLabel = atStation
-      ? `<span>📍 Now at: <strong style="color:#fff">${currentName}</strong></span>`
+    const anchorStop=stops[anchorIndex];
+    const departed=String(cur.status||'').toLowerCase()==='departed';
+    let nextIndex = departed ? anchorIndex+1 : anchorIndex+1;
+    // If API's nextHalt points to the same station as currentLocation (a known shape),
+    // prefer the actual next route station.
+    if(data.nextHalt?.stationCode && data.nextHalt.stationCode!==cur.stationCode){
+      const apiNext=stops.findIndex(s=>s.stationCode===data.nextHalt.stationCode);
+      if(apiNext>anchorIndex) nextIndex=apiNext;
+    }
+    if(nextIndex>=stops.length) nextIndex=stops.length-1;
+    const nextStop=stops[nextIndex];
+
+    // Current station is green only while the train is actually at that station.
+    const atStation=!departed && !!cur.stationCode;
+    const currentName=anchorStop?.stationName || cur.stationName || cur.stationCode || '—';
+    const nextName=nextStop?.stationName || data.nextHalt?.stationName || '—';
+    const speedKmh=cur.speedKmh!=null ? cur.speedKmh :
+      (anchorStop?.speedToNextStationKmph!=null ? anchorStop.speedToNextStationKmph : null);
+
+    // Status normalization: API route status is authoritative for every station.
+    stops.forEach((s,i)=>{
+      if(i<anchorIndex) s.status='departed';
+      else if(i===anchorIndex) s.status=atStation?'arrived':'departed';
+      else if(i===nextIndex) s.status='upcoming';
+      else if(i>nextIndex && s.status!=='departed') s.status='upcoming';
+      s.isCurrent=atStation && i===anchorIndex;
+      s.isNext=i===nextIndex;
+    });
+
+    const overall=formatDelay(data.delayMinutes);
+    const startedLabel=data.startDate?`<span>🗓 Started: <strong style="color:#fff">${data.startDate}</strong></span>`:'';
+    const locationLabel=atStation
+      ? `<span>📍 Now at: <strong style="color:#fff">${currentName}</strong></span><span>➜ Next: <strong style="color:#fff">${nextName}</strong></span>`
       : `<span>📍 Departed: <strong style="color:#fff">${currentName}</strong></span><span>➜ Next: <strong style="color:#fff">${nextName}</strong></span>`;
-    infoEl.innerHTML = `${locationLabel}<span>⚡ ${speedKmh!=null?speedKmh+' km/h':'—'}</span><span style="color:${overall.color};font-weight:700">⏱ ${overallDelayLabel(data.delayMinutes)}</span>${startedLabel}`;
+    infoEl.innerHTML=`${locationLabel}<span>⚡ ${speedKmh!=null?speedKmh+' km/h':'—'}</span><span style="color:${overall.color};font-weight:700">⏱ ${overallDelayLabel(data.delayMinutes)}</span>${startedLabel}<span class="live-update-badge">● Live update ${data.lastUpdatedAt?new Date(data.lastUpdatedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}):''}</span>`;
 
-    lastRouteData = { stops, prevCode, nextCode };
-    renderTimeline(stops, prevCode, nextCode);
+    lastRouteData={stops,prevCode:anchorStop?.stationCode,nextCode:nextStop?.stationCode};
+    renderTimeline(stops, atStation?anchorStop?.stationCode:null, nextStop?.stationCode);
 
-    // Update the live map with this train's real route + interpolated position
-    const withCoords = stops.filter(s=>typeof s.lat==='number' && typeof s.lng==='number')
-      .map(s=>({...s, isCurrent:s.stationCode===prevCode, isNext:s.stationCode===nextCode}));
+    const withCoords=stops.filter(s=>Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lng)))
+      .map(s=>({...s,lat:Number(s.lat),lng:Number(s.lng)}));
     if(withCoords.length>1){
-      const prevC=withCoords.find(s=>s.stationCode===prevCode);
-      const nextC=withCoords.find(s=>s.stationCode===nextCode);
-      let currentLatLng;
-      // Never invent a 50% position when RailRadar already gives the actual coordinates.
-      // This fixes the train appearing ahead/behind the station while it is at a halt.
-      const liveCoords = cur.coordinates && Number.isFinite(Number(cur.coordinates.lat)) && Number.isFinite(Number(cur.coordinates.lng))
-        ? [Number(cur.coordinates.lat), Number(cur.coordinates.lng)] : null;
+      const prevC=withCoords.find(s=>s.stationCode===anchorStop?.stationCode) || withCoords[0];
+      const nextC=withCoords.find(s=>s.stationCode===nextStop?.stationCode) || withCoords[Math.min(withCoords.indexOf(prevC)+1,withCoords.length-1)];
+
+      let currentLatLng=null;
+      const liveCoords=cur.coordinates && Number.isFinite(Number(cur.coordinates.lat)) && Number.isFinite(Number(cur.coordinates.lng))
+        ? [Number(cur.coordinates.lat),Number(cur.coordinates.lng)] : null;
+
       if(liveCoords){
         currentLatLng=liveCoords;
-      } else if(prevC && nextC && cur.segmentProgress!=null){
+      }else if(prevC && nextC && Number.isFinite(Number(cur.segmentProgress))){
         const p=Math.max(0,Math.min(1,Number(cur.segmentProgress)));
-        currentLatLng=[ prevC.lat+(nextC.lat-prevC.lat)*p, prevC.lng+(nextC.lng-prevC.lng)*p ];
-      } else {
-        const curStop=prevC || withCoords[0];
-        currentLatLng=[curStop.lat,curStop.lng];
+        currentLatLng=[prevC.lat+(nextC.lat-prevC.lat)*p, prevC.lng+(nextC.lng-prevC.lng)*p];
+      }else{
+        currentLatLng=[prevC.lat,prevC.lng];
       }
+
+      const oldPos=lastCurrentLatLng;
       lastCurrentLatLng=currentLatLng;
-      renderRouteOnMap(withCoords, currentLatLng, {
-        number, name:t.name, speed:speedKmh, currentName, nextName, atStation
-      }, geometryCoords);
+      const geometryCoords = Array.isArray(data.geometry?.coordinates)
+        ? data.geometry.coordinates.map(c=>[Number(c[1]),Number(c[0])]).filter(c=>Number.isFinite(c[0])&&Number.isFinite(c[1]))
+        : lastRouteGeometry;
+
+      // Use geometry supplied by live endpoint first; fallback to dedicated route endpoint.
+      let finalGeometry=geometryCoords;
+      if(!finalGeometry){
+        try{
+          const geo=await railradarGet('/trains/'+number+'/route',{format:'geojson',stops:false});
+          const raw=geo?.geojson?.geometry?.coordinates;
+          if(Array.isArray(raw)) finalGeometry=raw.filter(c=>Array.isArray(c)&&c.length>=2)
+            .map(c=>[Number(c[1]),Number(c[0])]).filter(c=>Number.isFinite(c[0])&&Number.isFinite(c[1]));
+        }catch(e){}
+      }
+      lastRouteGeometry=finalGeometry||null;
+
+      const meta={number,name:t.name,speed:speedKmh,currentName,nextName,atStation,
+        segmentStart:!atStation&&prevC?[prevC.lat,prevC.lng]:null,
+        segmentEnd:!atStation&&nextC?[nextC.lat,nextC.lng]:null,
+        updatedAt:data.lastUpdatedAt};
+      const previousTrainPos = trainMarker ? trainMarker.getLatLng() : null;
+      renderRouteOnMap(withCoords,currentLatLng,meta,lastRouteGeometry);
+      if(previousTrainPos && !opts.forceFullRender){
+        animateTrainTo(currentLatLng,meta);
+      }
     }
+
+    scheduleLivePolling();
+  }
+
+  function scheduleLivePolling(){
+    if(livePollTimer) clearTimeout(livePollTimer);
+    if(!lastSearchedTrainNo) return;
+    // Poll the authoritative endpoint roughly every 15 seconds so the marker/status follows
+    // fresh telemetry without hammering the API.
+    livePollTimer=setTimeout(async()=>{
+      try{ await loadLiveTrain(lastSearchedTrainNo,{force:true}); }
+      catch(e){ /* keep last good position visible; retry on next cycle */ scheduleLivePolling(); }
+    },15000);
   }
 
   // Colour a booking/current status string based on CNF / RAC / WL / CAN.
@@ -903,12 +1004,8 @@ footer{background:rgba(1,8,15,.7)}
           const avl = await railradarGet('/trains/'+train.number+'/seats', {
             source: source.code, destination: destination.code, journeyDate, classCode: journeyClass, quotaCode: quotaForAvl
           });
-          const pnrAvailability = Array.isArray(avl.avlDayList) ? avl.avlDayList : (Array.isArray(avl.availability) ? avl.availability : (Array.isArray(avl.availabilityList) ? avl.availabilityList : []));
-          const rows=pnrAvailability.slice(0,3).map(d=>{
-            const day=d.availablityDate || d.availabilityDate || d.date || d.journeyDate || '';
-            const status=d.availablityStatus || d.availabilityStatus || d.status || d.value || '';
-            return `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${day||'—'}</span><span>${seatStatusBadge(status)}</span></div>`;
-          }).join('') || `No live availability data returned for ${journeyClass} / ${quotaForAvl} on this route.`;
+          const pnrAvailability = normalizeSeatRows(av).slice(0,3);
+          const rows=pnrAvailability.map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${d.date||'—'}</span><span>${seatStatusBadge(d.status)}</span></div>`).join('') || `No live availability data returned for ${journeyClass} / ${quotaForAvl} on this route.`;
           document.getElementById('pnrSeatAvl').innerHTML = `<strong style="color:#dce8f6">Live seat availability (${journeyClass} • ${quotaForAvl})</strong>${rows}`;
         }catch(e){
           document.getElementById('pnrSeatAvl').innerHTML = `<span style="color:#9db1c9">Could not load live seat availability: ${e.message}</span>`;
@@ -1022,6 +1119,16 @@ footer{background:rgba(1,8,15,.7)}
     return `<strong style="color:${color}">${label}</strong>`;
   }
 
+  function normalizeSeatRows(data){
+    const list=Array.isArray(data?.avlDayList)?data.avlDayList:
+      Array.isArray(data?.availability)?data.availability:
+      Array.isArray(data?.availabilityList)?data.availabilityList:[];
+    return list.map(d=>({
+      date:d.availablityDate||d.availabilityDate||d.date||d.journeyDate||'',
+      status:d.availablityStatus||d.availabilityStatus||d.status||d.value||'—'
+    }));
+  }
+
   async function checkSeatAvailability(){
     const trainNo=document.getElementById('seatTrainNo').value.trim();
     const f=resolveStationInput('seatFrom');
@@ -1055,15 +1162,12 @@ footer{background:rgba(1,8,15,.7)}
       const data=await railradarGet('/trains/'+trainNo+'/seats', {
         source:f.code, destination:t.code, journeyDate:date, classCode:cls, quotaCode:quota
       });
-      const availabilityList = Array.isArray(data.avlDayList) ? data.avlDayList : (Array.isArray(data.availability) ? data.availability : (Array.isArray(data.availabilityList) ? data.availabilityList : []));
-      const rows=availabilityList.map(d=>{
-        const day=d.availablityDate || d.availabilityDate || d.date || d.journeyDate || '';
-        const status=d.availablityStatus || d.availabilityStatus || d.status || d.value || '';
-        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #16324c"><span>${day||'—'}</span><span>${seatStatusBadge(status)}</span></div>`;
-      }).join('') || `<div>No availability data returned by RailRadar for ${cls} / ${quota} on this route/date. Try another class or quota.</div>`;
+      const rows=normalizeSeatRows(data);
+      const rowsHtml=rows.map(d=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #16324c"><span>${d.date||'—'}</span><span>${seatStatusBadge(d.status)}</span></div>`).join('');
       out.innerHTML=`<strong>${data.trainName||''} (${data.trainNumber||trainNo})</strong><br>
         ${f.name} (${f.code}) → ${t.name} (${t.code}) • Class ${data.classCode||cls} • Quota ${data.quotaCode||quota}
-        <div style="margin-top:8px">${rows}</div>`;
+        <div style="margin-top:8px">${rowsHtml || '<div>No availability rows returned. The API may have no PRS data for this combination.</div>'}</div>
+        <div style="margin-top:9px;font-size:11px;color:#7895ae">Seat data is a live 14-day forecast from the connected RailRadar service.</div>`;
     }catch(err){
       out.innerHTML='<strong>'+err.message+'</strong>';
     }
