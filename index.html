@@ -151,7 +151,7 @@
     .station-pin.green{background:#22c55e}.station-pin.red{background:#ef4444}
     .live-time-card{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:8px 0 12px;padding:10px 12px;background:rgba(10,31,51,.72);border:1px solid #163b5a;border-radius:10px}
     .live-time-card .time-block{min-width:105px}.live-time-card .time-label{display:block;font-size:10px;color:#7895ae;text-transform:uppercase;letter-spacing:.04em}.live-time-card .time-value{display:block;font-weight:800;color:#f4f8fc;margin-top:2px}.live-time-card .time-status{display:block;font-size:10px;margin-top:2px}
-    .stop-time{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:10px;color:#8fa8c0}.stop-time b{color:#dce8f6}.stop-time .actual{color:#fff}.stop-delay{font-weight:700}.stop-delay.late{color:#ffbd61}.stop-delay.early{color:#48e994}.stop-delay.ontime{color:#48e994}
+    .stop-time{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:10px;color:#8fa8c0}.stop-time b{color:#dce8f6}.stop-time .actual{font-weight:800}.stop-time .actual.late{color:#ff5b5b}.stop-time .actual.early,.stop-time .actual.ontime{color:#32d978}.departure-live{display:inline-flex;align-items:center;gap:4px}.departure-live-dot{width:6px;height:6px;border-radius:50%;background:#32d978;box-shadow:0 0 7px #32d978;animation:blink 1s infinite}.departure-live-dot.late{background:#ff4d4d;box-shadow:0 0 7px #ff4d4d}.departure-live-dot.early{background:#32d978;box-shadow:0 0 7px #32d978}.stop-delay{font-weight:700}.stop-delay.late{color:#ff5b5b}.stop-delay.early{color:#32d978}.stop-delay.ontime{color:#32d978}
     .stop-dot{width:9px;height:9px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.3)}
     .stop-dot.departed{background:#ef4444}
     .stop-dot.upcoming{background:#f6c453}
@@ -175,6 +175,16 @@
     .seat-badge.closed{background:rgba(255,119,119,.12);color:#ff7777;border:1px solid rgba(255,119,119,.25)}
     .seat-badge.other{background:#0b243d;color:#dce8f6;border:1px solid #1d4566}
     .seat-empty{padding:12px;border:1px dashed #234b6b;border-radius:9px;color:#8fa8c0;font-size:12px}
+    /* ConfirmTkt-style seat availability cards */
+    .seat-search-card{background:#fff;border-radius:14px;color:#17212b;overflow:hidden;border:1px solid #dfe5eb;box-shadow:0 8px 24px rgba(0,0,0,.12);margin-top:12px}
+    .seat-card-top{padding:14px 16px 10px;border-bottom:1px solid #e8edf2}
+    .seat-card-route{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+    .seat-card-route .place{font-size:18px;font-weight:900;line-height:1.05}.seat-card-route .station{font-size:12px;color:#66737f;margin-top:4px}
+    .seat-arrow{font-size:24px;color:#7d8791;padding-top:5px}.seat-card-train{font-size:16px;font-weight:900;margin-top:12px}.seat-card-date-row{display:flex;gap:8px;overflow:auto;padding-top:12px}
+    .seat-date-chip{min-width:92px;border:1px solid #bfc7cf;border-radius:9px;background:#fff;padding:8px 10px;text-align:center;color:#29333d;cursor:pointer}.seat-date-chip.active{border:2px solid #f2a64b;padding:7px 9px}.seat-date-chip .d1{font-size:11px;color:#5e6872}.seat-date-chip .d2{font-size:13px;font-weight:800;margin-top:2px}
+    .seat-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 16px;background:#f1f3f5;border-bottom:1px solid #e1e5e9}.seat-toolbar button{background:#fff;border:1px solid #9fa8b1;border-radius:8px;padding:8px 12px;font-weight:800;color:#1d2832}.seat-toolbar .seat-refresh{color:#1688cf;border:0;background:transparent;font-weight:800}
+    .seat-class-row{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 15px}.seat-class-box{min-width:106px;border:1px solid #c8cfd6;border-radius:10px;padding:9px 9px 8px;background:#fff}.seat-class-box .cls{font-size:15px;font-weight:900}.seat-class-box .fare{float:right;font-size:12px;font-weight:800;color:#1d2933}.seat-class-box .status{display:block;margin-top:7px;font-size:13px;font-weight:900}.seat-class-box.available{background:#f2fff6;border-color:#9bd8ad}.seat-class-box.available .status{color:#20a24a}.seat-class-box.rac{background:#fffaf0;border-color:#e7c56d}.seat-class-box.rac .status{color:#c88900}.seat-class-box.wait{background:#fff4f4;border-color:#f0a5a5}.seat-class-box.wait .status{color:#e33f3f}.seat-class-box.closed{background:#fff1f1;border-color:#edb0b0}.seat-class-box.closed .status{color:#d83232}.seat-class-box.other .status{color:#596773}.seat-card-note{padding:0 16px 13px;color:#77838e;font-size:11px}.seat-loading{padding:18px;text-align:center;color:#6d7b87}
+    .seat-dark-wrap{color:#dce8f6}.seat-dark-wrap .seat-search-card{color:#17212b}
     .map-filter-toggle{display:inline-flex;align-items:center;gap:6px;background:rgba(6,20,34,.88);backdrop-filter:blur(6px);color:#dce8f6;font-size:11px;font-weight:700;padding:7px 11px;border-radius:99px;box-shadow:0 6px 16px rgba(0,0,0,.25);cursor:pointer;border:1px solid rgba(255,255,255,.12);user-select:none}
     .map-filter-toggle input{margin:0}
     .stop-label{background:rgba(6,20,34,.88)!important;border:0!important;color:#cfe0f2!important;font-weight:600!important;font-size:10px!important;border-radius:6px!important;box-shadow:0 3px 8px rgba(0,0,0,.25)!important}
@@ -528,7 +538,7 @@ footer{background:rgba(1,8,15,.7)}
         </div>
         <div class="form" style="grid-template-columns:1fr 1fr;gap:12px">
           <input id="seatDate" type="date" aria-label="Journey date">
-          <select id="seatClass"><option>SL</option><option>3A</option><option>3E</option><option>2A</option><option>1A</option><option>CC</option><option>EC</option><option>2S</option></select>
+          <select id="seatClass"><option value="ALL">All Classes</option><option value="SL">SL</option><option>3A</option><option>3E</option><option>2A</option><option>1A</option><option>CC</option><option>EC</option><option>2S</option></select>
         </div>
         <div class="form" style="grid-template-columns:1fr;gap:12px">
           <select id="seatQuota" aria-label="Quota">
@@ -836,21 +846,28 @@ footer{background:rgba(1,8,15,.7)}
     d.setMinutes(d.getMinutes()+Number(mins)); return d.toISOString();
   }
   function renderStopTimes(s, overallDelay){
+    // Keep scheduled and real/actual times separate. Never replace an actual railway
+    // timestamp with a calculated value; calculated ETA/ETD is only for future stops.
     const arr=s.scheduledArrival, dep=s.scheduledDeparture;
     const actArr=s.actualArrival, actDep=s.actualDeparture;
     const arrDelay=s.delayArrival, depDelay=s.delayDeparture;
     const isFuture=s.status==='upcoming' && !actArr && !actDep;
     const expectedArr=isFuture ? addMinutesToTime(arr, overallDelay) : null;
     const expectedDep=isFuture ? addMinutesToTime(dep, overallDelay) : null;
+    const delayClass=(v)=>v>0?'late':v<0?'early':'ontime';
     let html='<div class="stop-time">';
     if(arr){
-      html += `<span>Arr <b>${formatStationTime(arr)}</b>${actArr?` → <b class="actual">${formatStationTime(actArr)}</b>`:''}</span>`;
-      if(actArr && arrDelay!=null) html += `<span class="stop-delay ${arrDelay>0?'late':arrDelay<0?'early':'ontime'}">${delayText(arrDelay)}</span>`;
+      html += `<span>Arr <b>${formatStationTime(arr)}</b>${actArr?` → <b class="actual ${delayClass(arrDelay)}">${formatStationTime(actArr)}</b>`:''}</span>`;
+      if(actArr && arrDelay!=null) html += `<span class="stop-delay ${delayClass(arrDelay)}">${delayText(arrDelay)}</span>`;
       else if(isFuture && expectedArr) html += `<span>ETA <b>${formatStationTime(expectedArr)}</b></span>`;
     }
     if(dep){
-      html += `<span>Dep <b>${formatStationTime(dep)}</b>${actDep?` → <b class="actual">${formatStationTime(actDep)}</b>`:''}</span>`;
-      if(actDep && depDelay!=null) html += `<span class="stop-delay ${depDelay>0?'late':depDelay<0?'early':'ontime'}">${delayText(depDelay)}</span>`;
+      // Actual departure stays the exact real departure time. The green/red blinking
+      // dot shows that this is a live departure value; delay/early status is separate.
+      const depCls=delayClass(depDelay);
+      const depActual=actDep ? `<span class="departure-live"><i class="departure-live-dot ${depCls}"></i><b class="actual ${depCls}">${formatStationTime(actDep)}</b></span>` : '';
+      html += `<span>Dep <b>${formatStationTime(dep)}</b>${actDep?` → ${depActual}`:''}</span>`;
+      if(actDep && depDelay!=null) html += `<span class="stop-delay ${depCls}">${delayText(depDelay)}</span>`;
       else if(isFuture && expectedDep) html += `<span>ETD <b>${formatStationTime(expectedDep)}</b></span>`;
     }
     html+='</div>'; return html;
@@ -952,7 +969,9 @@ footer{background:rgba(1,8,15,.7)}
     const anchorDepLabel=anchorStop?.actualDeparture?'Actual departure':'Scheduled departure';
     const arrDelay=anchorStop?.actualArrival?anchorStop?.delayArrival:null;
     const depDelay=anchorStop?.actualDeparture?anchorStop?.delayDeparture:null;
-    infoEl.innerHTML=`<div class="live-time-card" style="width:100%">${locationLabel}<div class="time-block"><span class="time-label">${anchorArrLabel}</span><span class="time-value">${formatStationTime(anchorArr)}</span>${arrDelay!=null?`<span class="time-status stop-delay ${arrDelay>0?'late':arrDelay<0?'early':'ontime'}">${delayText(arrDelay)}</span>`:''}</div><div class="time-block"><span class="time-label">${anchorDepLabel}</span><span class="time-value">${formatStationTime(anchorDep)}</span>${depDelay!=null?`<span class="time-status stop-delay ${depDelay>0?'late':depDelay<0?'early':'ontime'}">${delayText(depDelay)}</span>`:''}</div><span>⚡ ${speedKmh!=null?speedKmh+' km/h':'—'}</span><span style="color:${overall.color};font-weight:700">⏱ ${overallDelayLabel(data.delayMinutes)}</span>${startedLabel}<span class="live-update-badge">● Live ${liveUpdated}</span></div>`;
+    const depCls=depDelay!=null?(depDelay>0?'late':depDelay<0?'early':'ontime'):'';
+    const depLiveDot=anchorStop?.actualDeparture?`<i class="departure-live-dot ${depCls}" style="display:inline-block;margin-right:5px"></i>`:'';
+    infoEl.innerHTML=`<div class="live-time-card" style="width:100%">${locationLabel}<div class="time-block"><span class="time-label">${anchorArrLabel}</span><span class="time-value">${formatStationTime(anchorArr)}</span>${arrDelay!=null?`<span class="time-status stop-delay ${arrDelay>0?'late':arrDelay<0?'early':'ontime'}">${delayText(arrDelay)}</span>`:''}</div><div class="time-block"><span class="time-label">${anchorDepLabel}</span><span class="time-value">${depLiveDot}<span class="${depCls}">${formatStationTime(anchorDep)}</span></span>${depDelay!=null?`<span class="time-status stop-delay ${depCls}">${delayText(depDelay)}</span>`:''}</div><span>⚡ ${speedKmh!=null?speedKmh+' km/h':'—'}</span><span style="color:${overall.color};font-weight:700">⏱ ${overallDelayLabel(data.delayMinutes)}</span>${startedLabel}<span class="live-update-badge">● Live ${liveUpdated}</span></div>`;
 
     lastRouteData={stops,prevCode:anchorStop?.stationCode,nextCode:nextStop?.stationCode};
     renderTimeline(stops, atStation?anchorStop?.stationCode:null, nextStop?.stationCode, data.delayMinutes);
@@ -1218,8 +1237,8 @@ footer{background:rgba(1,8,15,.7)}
     }).join('');
   }
 
-  // Seat availability presentation: normalize RailRadar/PRS strings into a compact
-  // ConfirmTkt-style status badge while preserving the original availability text.
+  // ConfirmTkt-style seat availability presentation.
+  // RailRadar returns avlDayList entries such as AVAILABLE-0042, RAC 12, GNWL24/WL11.
   function seatStatusInfo(status){
     const raw=String(status||'').trim();
     const s=raw.toUpperCase();
@@ -1228,18 +1247,13 @@ footer{background:rgba(1,8,15,.7)}
     if(avail) return {kind:'available',label:`${Number(avail[1])} Available`,raw};
     if(s==='AVAILABLE') return {kind:'available',label:'Available',raw};
     const rac=s.match(/RAC\s*[-:]?\s*(\d+)/i);
-    if(rac) return {kind:'rac',label:`RAC ${rac[1]}`,raw};
+    if(rac) return {kind:'rac',label:`RAC ${Number(rac[1])}`,raw};
     if(s.includes('REGRET') || s.includes('NOT AVAILABLE') || s.includes('NOT AVAIL') || s.includes('CANCEL'))
       return {kind:'closed',label:'Not Available',raw};
-    const wl=s.match(/(?:GNWL|RLWL|PQWL|RQWL|CKWL|WL)\s*[-:]?\s*\d+(?:\s*\/\s*(?:WL)?\d+)?/i);
-    if(wl) return {kind:'wait',label:wl[0].replace(/\s+/g,' '),raw};
-    if(s.includes('WL')) return {kind:'wait',label:raw,raw};
+    const wl=s.match(/(?:WL\s*)?(\d+)\s*$/i) || s.match(/WL\s*[-:]?\s*(\d+)/i);
+    if(wl && s.includes('WL')) return {kind:'wait',label:`WL${Number(wl[1])}`,raw};
+    if(s.includes('WL')) return {kind:'wait',label:raw.replace(/\s+/g,' '),raw};
     return {kind:'other',label:raw,raw};
-  }
-
-  function seatStatusBadge(status){
-    const x=seatStatusInfo(status);
-    return `<span class="seat-badge ${x.kind}" title="${x.raw.replace(/"/g,'&quot;')}">${x.label}</span>`;
   }
 
   function normalizeSeatRows(data){
@@ -1249,16 +1263,95 @@ footer{background:rgba(1,8,15,.7)}
       Array.isArray(data?.days)?data.days:[];
     return list.map(d=>({
       date:d.availablityDate||d.availabilityDate||d.availability_date||d.date||d.journeyDate||d.journey_date||'',
-      status:d.availablityStatus||d.availabilityStatus||d.availability_status||d.status||d.value||d.availability||'—'
+      status:d.availablityStatus||d.availabilityStatus||d.availability_status||d.status||d.value||d.availability||'—',
+      fare:d.fare||d.totalFare||d.price||d.amount||null
     }));
   }
 
-  function seatResultTable(rows){
-    if(!rows.length) return '<div class="seat-empty">No availability rows returned for this train, route, class and quota. Try another class/quota or date.</div>';
-    return `<table class="seat-table"><thead><tr><th>Journey date</th><th>Availability</th><th>Original status</th></tr></thead><tbody>${rows.map(d=>{
-      const info=seatStatusInfo(d.status);
-      return `<tr><td><strong>${d.date||'—'}</strong></td><td>${seatStatusBadge(d.status)}</td><td style="color:#8fa8c0;font-size:11px">${info.raw||'—'}</td></tr>`;
-    }).join('')}</tbody></table>`;
+  function seatClassName(code){
+    return ({SL:'SL','3A':'3A','3E':'3E','2A':'2A','1A':'1A',CC:'CC',EC:'EC',EA:'EA','2S':'2S'})[code]||code||'—';
+  }
+
+  function formatSeatDate(iso){
+    if(!iso) return {dow:'',date:'—'};
+    const d=new Date(iso+'T00:00:00+05:30');
+    if(isNaN(d.getTime())) return {dow:'',date:iso};
+    return {dow:d.toLocaleDateString('en-IN',{weekday:'short'}),date:d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})};
+  }
+
+  function nextDateIso(iso, n){
+    const d=new Date(iso+'T00:00:00+05:30');
+    d.setDate(d.getDate()+n);
+    return d.toISOString().slice(0,10);
+  }
+
+  function classOrder(){ return ['SL','3A','3E','2A','1A','CC','EC','EA','2S']; }
+
+  function renderSeatClassBoxes(results, selectedDate){
+    const codes=classOrder().filter(c=>results[c]);
+    if(!codes.length) return '<div class="seat-loading">No live class-wise availability returned for this date.</div>';
+    return `<div class="seat-class-row">${codes.map(code=>{
+      const row=results[code].find(x=>x.date===selectedDate) || results[code][0];
+      const info=seatStatusInfo(row?.status);
+      const fare=row?.fare!=null?`₹${row.fare}`:'—';
+      return `<div class="seat-class-box ${info.kind}" title="${String(info.raw||'').replace(/"/g,'&quot;')}"><span class="cls">${seatClassName(code)}</span><span class="fare">${fare}</span><span class="status">${info.label}</span></div>`;
+    }).join('')}</div>`;
+  }
+
+  function renderSeatDateTabs(dates, selectedDate, results, onPick){
+    const usable=dates.filter(Boolean).slice(0,3);
+    return `<div class="seat-card-date-row">${usable.map((date,i)=>{
+      const f=formatSeatDate(date);
+      return `<button type="button" class="seat-date-chip ${date===selectedDate?'active':''}" onclick="${onPick}('${date}')"><div class="d1">${f.dow}</div><div class="d2">${f.date}</div></button>`;
+    }).join('')}</div>`;
+  }
+
+  function renderSeatAvailabilityCard(ctx){
+    const {f,t,trainNo,trainName,selectedDate,results,schedule}=ctx;
+    const allDates=new Set([selectedDate]);
+    Object.values(results).forEach(rows=>rows.forEach(r=>{if(r.date) allDates.add(r.date);}));
+    const dates=[...allDates].sort().slice(0,3);
+    const dep=schedule?.from?.departure||'—', arr=schedule?.to?.arrival||'—';
+    const duration=schedule?.duration!=null?formatDuration(schedule.duration):'—';
+    window.__seatCtx=ctx;
+    window.__seatDates=dates;
+    return `<div class="seat-search-card">
+      <div class="seat-card-top">
+        <div class="seat-card-route">
+          <div><div class="place">${f.code}</div><div class="station">${f.name}</div></div>
+          <div class="seat-arrow">⇄</div>
+          <div style="text-align:right"><div class="place">${t.code}</div><div class="station">${t.name}</div></div>
+        </div>
+        <div class="seat-card-train">${trainName||''} <span style="color:#66737f;font-weight:700">(${trainNo})</span></div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#5e6872"><b style="font-size:18px;color:#17212b">${dep}</b><span>— ${duration} —</span><b style="font-size:18px;color:#17212b">${arr}</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#66737f;margin-top:2px"><span>${f.name}</span><span>${t.name}</span></div>
+        ${renderSeatDateTabs(dates,selectedDate,results,'pickSeatDate')}
+      </div>
+      <div class="seat-toolbar"><span><b>Classes</b> • ${document.getElementById('seatQuota')?.selectedOptions?.[0]?.textContent||'General'}</span><button class="seat-refresh" type="button" onclick="checkSeatAvailability()">↻ Refresh Availability</button></div>
+      <div id="seatClassResults">${renderSeatClassBoxes(results,selectedDate)}</div>
+      <div class="seat-card-note">Live railway availability • Status is taken from the connected railway data. Fare is shown only when the API provides it.</div>
+    </div>`;
+  }
+
+  function pickSeatDate(date){
+    const ctx=window.__seatCtx;
+    if(!ctx) return;
+    ctx.selectedDate=date;
+    const out=document.getElementById('seatResult');
+    out.innerHTML=renderSeatAvailabilityCard(ctx);
+  }
+
+  function formatDuration(minutes){
+    const n=Number(minutes); if(!Number.isFinite(n)) return '—';
+    const h=Math.floor(n/60), m=n%60;
+    return `${h}h ${String(m).padStart(2,'0')}m`;
+  }
+
+  async function fetchSeatForClass(trainNo,f,t,journeyDate,code,quota){
+    try{
+      const data=await railradarGet('/trains/'+encodeURIComponent(trainNo)+'/seats',{source:f.code,destination:t.code,journeyDate,classCode:code,quotaCode:quota});
+      return {code,rows:normalizeSeatRows(data),data};
+    }catch(error){ return {code,rows:[],error:error.message}; }
   }
 
   async function checkSeatAvailability(){
@@ -1273,28 +1366,42 @@ footer{background:rgba(1,8,15,.7)}
     if(!f||!t){ out.innerHTML='<strong>Please select both From and To stations from the suggestions.</strong><br>Example: Dehradun (DDN) → Haridwar Jn (HW).'; return; }
     if(f.code===t.code){ out.innerHTML='<strong>From and To stations must be different.</strong>'; return; }
     if(!date){ out.innerHTML='<strong>Please select a journey date.</strong>'; return; }
-
-    // No train number: find all trains on this route first.
-    if(!trainNo){
-      out.innerHTML=`<div class="seat-results-head"><div><div class="seat-route-title">${f.name} (${f.code}) → ${t.name} (${t.code})</div><div class="seat-route-sub">Finding trains for ${date}…</div></div></div>`;
-      try{
-        const data=await railradarGet('/trains/between/'+encodeURIComponent(f.code)+'/'+encodeURIComponent(t.code), { date, live:true });
-        const trains=Array.isArray(data?.trains)?data.trains:[];
-        out.innerHTML=`<div class="seat-results-head"><div><div class="seat-route-title">${f.name} (${f.code}) → ${t.name} (${t.code})</div><div class="seat-route-sub">${data.count!=null?data.count:trains.length} train(s) found • ${date}</div></div></div><div style="margin-top:8px">${renderTrainList(trains, f, t, date, cls)}</div>`;
-      }catch(err){ out.innerHTML='<strong>'+err.message+'</strong>'; }
-      return;
+    if(!/^\d{4,5}$/.test(trainNo)){
+      if(!trainNo){
+        out.innerHTML=`<div class="seat-results-head"><div><div class="seat-route-title">${f.name} (${f.code}) → ${t.name} (${t.code})</div><div class="seat-route-sub">Finding trains for ${date}…</div></div></div>`;
+        try{
+          const data=await railradarGet('/trains/between/'+encodeURIComponent(f.code)+'/'+encodeURIComponent(t.code),{date,live:true});
+          const trains=Array.isArray(data?.trains)?data.trains:[];
+          out.innerHTML=`<div class="seat-results-head"><div><div class="seat-route-title">${f.name} (${f.code}) → ${t.name} (${t.code})</div><div class="seat-route-sub">${data.count!=null?data.count:trains.length} train(s) found • ${date}</div></div></div><div style="margin-top:8px">${renderTrainList(trains,f,t,date,cls)}</div>`;
+        }catch(err){ out.innerHTML='<strong>'+err.message+'</strong>'; }
+        return;
+      }
+      out.innerHTML='<strong>Please enter a valid 4–5 digit train number.</strong>'; return;
     }
 
-    if(!/^\d{4,5}$/.test(trainNo)){ out.innerHTML='<strong>Please enter a valid 4–5 digit train number, or leave it blank to find trains on this route.</strong>'; return; }
-    out.innerHTML='<strong>Checking live seat availability…</strong>';
+    out.innerHTML='<div class="seat-loading">Checking live availability for all selected classes…</div>';
     try{
-      const data=await railradarGet('/trains/'+encodeURIComponent(trainNo)+'/seats', {
-        source:f.code, destination:t.code, journeyDate:date, classCode:cls, quotaCode:quota
-      });
-      const rows=normalizeSeatRows(data);
-      const trainName=data.trainName||data.train?.name||'';
-      const trainNumber=data.trainNumber||data.train?.number||trainNo;
-      out.innerHTML=`<div class="seat-results-head"><div><div class="seat-route-title">${trainNumber} ${trainName}</div><div class="seat-route-sub">${f.name} (${f.code}) → ${t.name} (${t.code}) • ${data.classCode||cls} • ${data.quotaCode||quota}</div></div></div>${seatResultTable(rows)}<div style="margin-top:8px;font-size:11px;color:#7895ae">Availability is shown exactly from the connected live railway data; status text is also kept in the last column.</div>`;
+      let schedule=null, trainName='';
+      try{
+        const routeData=await railradarGet('/trains/between/'+encodeURIComponent(f.code)+'/'+encodeURIComponent(t.code),{date,live:true});
+        const found=(routeData?.trains||[]).find(x=>String(x?.train?.number||'')===trainNo);
+        if(found){ schedule=found; trainName=found.train?.name||''; }
+      }catch(e){}
+
+      const codes=cls==='ALL'?classOrder():[cls];
+      const settled=await Promise.all(codes.map(c=>fetchSeatForClass(trainNo,f,t,date,c,quota)));
+      const results={};
+      settled.forEach(r=>{ if(r.rows.length) results[r.code]=r.rows; });
+      const first=settled.find(r=>r.data?.trainName||r.data?.train?.name);
+      if(!trainName) trainName=first?.data?.trainName||first?.data?.train?.name||'';
+      const ctx={f,t,trainNo,trainName,selectedDate:date,results,schedule};
+      window.__seatCtx=ctx;
+      if(!Object.keys(results).length){
+        const errors=settled.filter(x=>x.error).map(x=>`${x.code}: ${x.error}`).join('<br>');
+        out.innerHTML=`<div class="seat-search-card"><div class="seat-loading"><b>No live availability returned.</b>${errors?'<br><small>'+errors+'</small>':''}<br>Try another class, quota or journey date.</div></div>`;
+        return;
+      }
+      out.innerHTML=renderSeatAvailabilityCard(ctx);
     }catch(err){ out.innerHTML='<strong>Could not load seat availability.</strong><br><span style="color:#9db1c9">'+err.message+'</span>'; }
   }
 
