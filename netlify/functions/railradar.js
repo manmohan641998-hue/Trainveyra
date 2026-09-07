@@ -1,9 +1,9 @@
-// TrainVeyra — RailRadar API proxy
+// TrainVeyra â€” RailRadar API proxy
 // This function runs on Netlify's server, NOT in the browser.
 // The API key stays here and is never sent to the visitor's device.
 //
 // SETUP:
-// 1. In Netlify dashboard → Site settings → Environment variables
+// 1. In Netlify dashboard â†’ Site settings â†’ Environment variables
 // 2. Add a variable named: RAILRADAR_API_KEY
 // 3. Value: your key from https://railradar.in/developers (starts with rr_live_)
 // 4. Redeploy the site.
