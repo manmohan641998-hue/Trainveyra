@@ -1347,9 +1347,17 @@ footer{background:rgba(1,8,15,.7)}
     return `${h}h ${String(m).padStart(2,'0')}m`;
   }
 
+  const SEAT_API_MIN_GAP_MS=6500;
+  let seatApiQueue=Promise.resolve();
+  function queuedSeatRequest(task){
+    const run=seatApiQueue.then(async()=>{ await new Promise(r=>setTimeout(r,SEAT_API_MIN_GAP_MS)); return task(); });
+    seatApiQueue=run.catch(()=>{});
+    return run;
+  }
+
   async function fetchSeatForClass(trainNo,f,t,journeyDate,code,quota){
     try{
-      const data=await railradarGet('/trains/'+encodeURIComponent(trainNo)+'/seats',{source:f.code,destination:t.code,journeyDate,classCode:code,quotaCode:quota});
+      const data=await queuedSeatRequest(()=>railradarGet('/trains/'+encodeURIComponent(trainNo)+'/seats',{source:f.code,destination:t.code,journeyDate,classCode:code,quotaCode:quota}));
       return {code,rows:normalizeSeatRows(data),data};
     }catch(error){ return {code,rows:[],error:error.message}; }
   }
@@ -1379,7 +1387,7 @@ footer{background:rgba(1,8,15,.7)}
       out.innerHTML='<strong>Please enter a valid 4–5 digit train number.</strong>'; return;
     }
 
-    out.innerHTML='<div class="seat-loading">Checking live availability for all selected classes…</div>';
+    out.innerHTML=cls==='ALL' ? '<div class="seat-loading">Checking live availability class-by-class (rate limit safe)…</div>' : '<div class="seat-loading">Checking live availability…</div>';
     try{
       let schedule=null, trainName='';
       try{
