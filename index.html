@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrainVeyra — Live Train Status, Radar, PNR & Seat Availability</title>
+  <meta name="description" content="TrainVeyra is a modern Indian railway tracking platform for live train status, train radar, station status, timetables, PNR status and seat availability.">
+  <meta name="keywords" content="train live status, train running status, train radar, Indian Railways, PNR status, seat availability, train timetable, station status, train tracker">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#061426">
+  <link rel="canonical" href="https://trainveyra.in/">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TrainVeyra — India's Smart Train Tracking Platform">
+  <meta property="og:description" content="Track trains, check running status, PNR and seat availability in one place.">
+  <meta property="og:url" content="https://trainveyra.in/">
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebSite",
+    "name":"TrainVeyra",
+    "url":"https://trainveyra.in/",
+    "description":"Indian train tracking, timetable, PNR and seat availability platform",
+    "potentialAction":{
+      "@type":"SearchAction",
+      "target":"https://trainveyra.in/?q={search_term_string}",
+      "query-input":"required name=search_term_string"
+    }
+  }
+  </script>
+
+  <style>
+    :root{
+      --bg:#030b17; --panel:#071a2f; --panel2:#0a2038; --line:#123456;
+      --text:#f3f7ff; --muted:#9db1c9; --blue:#1196ff; --cyan:#22d3ee;
+      --green:#20d67a; --orange:#ffad3d; --red:#ff4b4b; --purple:#9b6cff;
+      --shadow:0 18px 55px rgba(0,0,0,.38);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:radial-gradient(circle at 75% 15%,#0b2947 0,#030b17 42%,#020711 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    a{color:inherit;text-decoration:none}
+    button,input{font:inherit}
+    .container{width:min(1380px,calc(100% - 40px));margin:auto}
+
+    header{height:72px;border-bottom:1px solid rgba(68,128,183,.2);background:rgba(3,12,25,.97);position:sticky;top:0;z-index:20}
+    .nav{height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:23px;letter-spacing:-.6px}
+    .brand-mark{width:43px;height:43px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,#0b86ff,#16d8ff);box-shadow:0 0 24px rgba(17,150,255,.28);font-size:24px}
+    .brand small{display:block;color:#829bb5;font-size:9px;font-weight:600;letter-spacing:1.4px;margin-top:1px}
+    nav{display:flex;align-items:center;gap:7px}
+    nav a{padding:10px 12px;color:#dce8f6;font-size:14px;border-radius:10px;white-space:nowrap}
+    nav a:hover,nav a.active{color:#fff;background:rgba(17,150,255,.1)}
+    nav a.active{border-bottom:2px solid var(--blue)}
+    .nav-actions{display:flex;gap:10px;align-items:center}
+    .icon-btn{width:38px;height:38px;border:1px solid #163957;background:#071a2c;color:#d9ebff;border-radius:50%;cursor:pointer}
+
+    .hero{min-height:475px;position:relative;overflow:hidden;padding:65px 0 35px}
+    .hero:before{content:"";position:absolute;inset:0;background:
+      linear-gradient(90deg,rgba(2,10,22,.98) 0%,rgba(2,13,27,.86) 38%,rgba(2,13,27,.35) 68%,rgba(2,13,27,.2)),
+      radial-gradient(circle at 77% 45%,rgba(18,140,255,.25),transparent 27%);}
+    .hero:after{content:"";position:absolute;width:570px;height:570px;right:-110px;top:-180px;border:1px solid rgba(24,152,255,.16);border-radius:50%;box-shadow:0 0 0 60px rgba(24,152,255,.025),0 0 0 120px rgba(24,152,255,.02)}
+    .hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1.05fr;gap:35px;align-items:center}
+    .eyebrow{display:inline-flex;gap:8px;align-items:center;color:#73c8ff;font-size:13px;font-weight:700;letter-spacing:.7px;text-transform:uppercase}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 13px var(--green)}
+    h1{font-size:clamp(42px,5vw,70px);line-height:1.02;letter-spacing:-3px;margin:14px 0 18px}
+    h1 span{color:#159bff}
+    .hero p{color:#b4c6da;max-width:610px;font-size:17px;line-height:1.6;margin:0 0 25px}
+    .search{display:flex;max-width:650px;background:#102943;border:1px solid #31577d;border-radius:12px;padding:5px;box-shadow:0 12px 35px rgba(0,0,0,.3)}
+    .search input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:#fff;padding:13px 15px}
+    .search button,.primary{border:0;border-radius:9px;background:linear-gradient(135deg,#138cff,#0871e8);color:#fff;font-weight:800;padding:0 22px;cursor:pointer}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+    .chip{border:1px solid #173d62;background:#081b30;color:#c7d8e9;padding:7px 12px;border-radius:99px;font-size:12px;cursor:pointer}
+    .hero-card{justify-self:end;width:min(100%,570px);position:relative}
+    .train-visual{height:255px;border-radius:20px;border:1px solid #21466a;background:
+      linear-gradient(180deg,rgba(2,10,18,.05),rgba(2,9,18,.75)),
+      radial-gradient(circle at 62% 42%,rgba(255,139,39,.33),transparent 14%),
+      linear-gradient(125deg,#0b1d30,#162d40 48%,#071422);box-shadow:var(--shadow);position:relative;overflow:hidden}
+    .track{position:absolute;left:15%;right:3%;bottom:32px;height:2px;background:linear-gradient(90deg,transparent,#b9d5eb,#fff,#a3bfd4);transform:skewY(-8deg)}
+    .train-icon{position:absolute;left:42%;top:32%;font-size:86px;filter:drop-shadow(0 12px 20px rgba(0,0,0,.7))}
+    .radar{position:absolute;right:18%;top:17%;width:130px;height:130px;border:1px solid rgba(22,167,255,.55);border-radius:50%;box-shadow:0 0 0 22px rgba(22,167,255,.04),0 0 0 45px rgba(22,167,255,.025)}
+    .radar:after{content:"";position:absolute;inset:28px;border:1px solid rgba(40,225,255,.45);border-radius:50%}
+    .radar-dot{position:absolute;left:50%;top:50%;width:16px;height:16px;transform:translate(-50%,-50%);background:#31f09a;border-radius:50%;box-shadow:0 0 24px #31f09a}
+    .status-card{position:absolute;right:10px;bottom:-22px;width:285px;background:rgba(5,18,32,.94);border:1px solid #345a7e;border-radius:15px;padding:18px;box-shadow:var(--shadow)}
+    .status-head{display:flex;justify-content:space-between;gap:10px}
+    .badge{font-size:11px;padding:5px 8px;border-radius:7px;font-weight:800}
+    .running{background:rgba(32,214,122,.14);color:#48e994}.delayed{background:rgba(255,173,61,.13);color:#ffc064}.stopped{background:rgba(255,75,75,.13);color:#ff7777}
+    .route{color:#b9cbe0;font-size:13px;margin:9px 0 15px}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid #1b3853;padding-top:12px}
+    .metrics b{display:block;font-size:13px}.metrics small{color:#7891a9;font-size:10px}
+
+    .feature-row{position:relative;z-index:3;margin-top:-2px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .feature{background:linear-gradient(145deg,#071a2e,#06172a);border:1px solid #163b5d;border-radius:14px;padding:20px;display:flex;align-items:center;gap:14px;min-height:104px;transition:.25s;cursor:pointer}
+    .feature:hover{transform:translateY(-3px);border-color:#2879b6}
+    .feature-icon{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:23px;background:#092e4b;border:1px solid #1b6699}
+    .feature:nth-child(1) .feature-icon{background:#093d2d;border-color:#237b58}
+    .feature:nth-child(3) .feature-icon{background:#2a1748;border-color:#6b42a0}
+    .feature:nth-child(4) .feature-icon{background:#483019;border-color:#93642c}
+    .feature b{font-size:15px}.feature span{display:block;color:#8fa8c0;font-size:12px;margin-top:5px}
+
+    section{padding:70px 0}
+    .section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:25px}
+    .section-head h2{margin:0;font-size:30px;letter-spacing:-1px}
+    .section-head p{margin:7px 0 0;color:#819ab4;font-size:14px}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+    .tool-card{background:#06172a;border:1px solid #143754;border-radius:16px;padding:23px;min-height:180px}
+    .tool-card h3{margin:13px 0 7px;font-size:17px}.tool-card p{color:#8ea7bf;font-size:13px;line-height:1.55;margin:0 0 18px}
+    .tool-card .go{color:#54baff;font-size:13px;font-weight:800}
+    .tool-symbol{font-size:26px}
+
+    .dashboard{background:linear-gradient(180deg,#041224,#030b17);border-top:1px solid #0d2b46;border-bottom:1px solid #0d2b46}
+    .demo-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
+    .demo{background:#06182b;border:1px solid #153b5d;border-radius:17px;padding:20px}
+    .map{min-height:410px;position:relative;overflow:hidden;padding:0!important;background:#e9e5d8}
+    #liveMap{position:absolute;inset:0;z-index:1;background:#e9e5d8}
+    .map-header{position:absolute;top:14px;left:14px;right:14px;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+    .map-header>*{pointer-events:auto}
+    .live-pill-map{display:inline-flex;align-items:center;gap:7px;background:rgba(6,20,34,.88);backdrop-filter:blur(6px);color:#fff;font-size:12px;font-weight:700;padding:8px 12px;border-radius:99px;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+    .live-pill-map i{width:8px;height:8px;border-radius:50%;background:#35ed9d;box-shadow:0 0 10px #35ed9d;animation:blink 1.2s infinite}
+    .map-toggle{display:flex;background:#fff;border-radius:99px;padding:3px;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+    .toggle-btn{border:0;background:transparent;color:#264;color:#3a4a5c;font-size:12px;font-weight:700;padding:8px 14px;border-radius:99px;cursor:pointer;display:flex;align-items:center;gap:5px}
+    .toggle-btn.active{background:#1878ff;color:#fff}
+    .map-legend{position:absolute;bottom:14px;left:14px;z-index:5;background:rgba(255,255,255,.96);border-radius:12px;padding:12px 15px;box-shadow:0 8px 20px rgba(0,0,0,.22);display:grid;gap:7px}
+    .legend-row{display:flex;align-items:center;gap:8px;font-size:12px;color:#33414f;font-weight:600}
+    .dot-legend{width:10px;height:10px;border-radius:50%;display:inline-block;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+    .dot-legend.blue{background:#1878ff}.dot-legend.green{background:#22c55e}.dot-legend.red{background:#ef4444}
+    .line-legend{width:16px;height:3px;border-radius:2px;background:#1878ff;display:inline-block}
+    .train-tt{background:#fff!important;border:0!important;border-radius:10px!important;box-shadow:0 8px 20px rgba(0,0,0,.28)!important;padding:8px 11px!important;font-family:inherit!important}
+    .train-tt b{display:block;font-size:12px;color:#1a2733}
+    .train-tt span{display:block;font-size:11px;color:#5c88ff;font-weight:700;margin-top:2px}
+    .station-tt{background:rgba(6,20,34,.9)!important;border:0!important;color:#fff!important;font-weight:700!important;font-size:12px!important;border-radius:8px!important;box-shadow:0 4px 12px rgba(0,0,0,.3)!important}
+    .train-pin{width:30px;height:30px;border-radius:50%;background:#1878ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35);display:grid;place-items:center;font-size:15px;animation:trainPinPulse 1.6s infinite}
+    @keyframes trainPinPulse{50%{box-shadow:0 4px 12px rgba(0,0,0,.35),0 0 0 8px rgba(24,120,255,.25)}}
+    .station-pin{width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+    .station-pin.green{background:#22c55e}.station-pin.red{background:#ef4444}
+    .stop-dot{width:9px;height:9px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.3)}
+    .stop-dot.departed{background:#ef4444}
+    .stop-dot.upcoming{background:#f6c453}
+    .stop-dot.current{width:15px;height:15px;background:#22c55e;box-shadow:0 0 0 5px rgba(34,197,94,.35);animation:trainPinPulse 1.6s infinite}
+    .stop-dot.hidden-stop{display:none}
+    .map-filter-toggle{display:inline-flex;align-items:center;gap:6px;background:rgba(6,20,34,.88);backdrop-filter:blur(6px);color:#dce8f6;font-size:11px;font-weight:700;padding:7px 11px;border-radius:99px;box-shadow:0 6px 16px rgba(0,0,0,.25);cursor:pointer;border:1px solid rgba(255,255,255,.12);user-select:none}
+    .map-filter-toggle input{margin:0}
+    .stop-label{background:rgba(6,20,34,.88)!important;border:0!important;color:#cfe0f2!important;font-weight:600!important;font-size:10px!important;border-radius:6px!important;box-shadow:0 3px 8px rgba(0,0,0,.25)!important}
+    .train-tt .now-next{display:block;color:#cfe0f2;font-weight:500;font-size:10px;margin-top:2px}
+    .train-tt .now-next b{color:#ffad3d}
+    .leaflet-top.leaflet-right{top:64px!important}
+    .leaflet-control-zoom a{color:#264!important;color:#33414f!important}
+    .demo-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}
+    .demo-top h3{margin:0;font-size:17px}.tabs{display:flex;gap:4px}.tab{background:#0b243d;color:#8ea8c1;border:0;border-radius:7px;padding:7px 10px;font-size:11px}.tab.active{background:#0b5e98;color:#fff}
+    .timeline{display:grid;gap:12px}.stop{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:center}.rail{width:10px;height:10px;border-radius:50%;border:2px solid #36a9ff;background:#06182b;position:relative}.stop:not(:last-child) .rail:after{content:"";position:absolute;width:2px;height:30px;left:2px;top:7px;background:#17466a}.stop b{font-size:12px}.stop small{display:block;color:#6f8aa5;font-size:10px;margin-top:2px}.stop time{font-size:11px;color:#a9c0d6}
+
+    .seo-box{background:#06182a;border:1px solid #143754;border-radius:16px;padding:28px}
+    .seo-box h2{margin-top:0}.seo-box p,.seo-box li{color:#91a8bf;line-height:1.7;font-size:14px}
+
+    footer{border-top:1px solid #102c45;padding:35px 0 25px;color:#7891a9;font-size:12px}
+    .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:30px}.footer-grid h4{color:#dbe9f8;margin:0 0 12px}.footer-grid a{display:block;margin:7px 0}.footer-grid a:hover{color:#fff}.copyright{border-top:1px solid #102c45;margin-top:25px;padding-top:18px;display:flex;justify-content:space-between}
+
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);z-index:50;align-items:center;justify-content:center;padding:20px}
+    .modal.open{display:flex}.modal-box{width:min(570px,100%);background:#071a2e;border:1px solid #28567b;border-radius:18px;padding:25px;box-shadow:0 25px 90px #000}
+    .modal-box h2{margin-top:0}.form{display:grid;gap:12px}.form input,.form select{width:100%;background:#061426;color:#fff;border:1px solid #1d4566;border-radius:9px;padding:12px;outline:0}.form .primary{height:44px}.close{float:right;background:transparent;border:0;color:#9bb2c9;font-size:23px;cursor:pointer}
+    .note{font-size:11px;color:#718aa3;line-height:1.5}
+    .notice{background:#081b30;border:1px solid #1d4566;border-radius:10px;padding:13px 15px;font-size:13px;line-height:1.6;color:#cfe0f2}
+    .notice strong{color:#fff}
+
+    @media(max-width:1050px){
+      nav{display:none}.hero-grid{grid-template-columns:1fr}.hero-card{justify-self:start;width:100%}.feature-row,.grid4{grid-template-columns:repeat(2,1fr)}.demo-grid{grid-template-columns:1fr}.footer-grid{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:650px){
+      .container{width:min(100% - 24px,1380px)}header,.nav{height:64px}.brand{font-size:20px}.brand-mark{width:38px;height:38px}
+      .hero{padding:45px 0 25px}.hero:after{display:none}h1{font-size:43px;letter-spacing:-2px}.hero p{font-size:15px}
+      .search{display:flex}.search input{font-size:13px}.search button{padding:0 15px}
+      .feature-row,.grid4{grid-template-columns:1fr}.feature{min-height:90px}.status-card{position:relative;right:auto;bottom:auto;margin:12px;max-width:calc(100% - 24px);width:auto}.train-visual{height:225px}
+      section{padding:48px 0}.section-head{display:block}.section-head h2{font-size:25px}.footer-grid{grid-template-columns:1fr}.copyright{display:block;line-height:1.7}
+    }
+  
+/* ===== TrainVeyra Premium 2026 Layer ===== */
+:root{
+  --gold:#f6c453; --glass:rgba(7,24,42,.72); --glass2:rgba(10,31,52,.82);
+  --glow:0 0 35px rgba(20,157,255,.18);
+}
+body{
+  background:
+    radial-gradient(circle at 82% 8%,rgba(19,150,255,.18),transparent 24%),
+    radial-gradient(circle at 12% 38%,rgba(32,214,122,.08),transparent 20%),
+    linear-gradient(135deg,#020812 0%,#031426 46%,#020711 100%);
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.22;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:45px 45px;
+}
+header{
+  background:rgba(2,10,20,.96)!important;
+  border-bottom:1px solid rgba(80,160,220,.18)!important;
+  box-shadow:0 8px 35px rgba(0,0,0,.18);
+}
+.brand-mark{
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#0b82ff,#16d8ff 60%,#f6c453)!important;
+}
+.brand-mark:after{
+  content:"";position:absolute;width:90px;height:12px;top:-20px;left:-40px;
+  background:rgba(255,255,255,.55);transform:rotate(-35deg);animation:shine 4s infinite;
+}
+.hero{
+  min-height:570px!important;padding-top:78px!important;
+  background:
+    radial-gradient(circle at 80% 55%,rgba(20,150,255,.12),transparent 28%),
+    linear-gradient(90deg,rgba(1,8,17,.98),rgba(1,13,25,.68),rgba(1,13,25,.28));
+}
+.hero-grid{gap:55px!important}
+.eyebrow{color:#76d0ff!important}
+.hero h1{font-weight:900;text-shadow:0 8px 40px rgba(0,0,0,.45)}
+.hero h1 span{background:linear-gradient(90deg,#159bff,#37d9ff,#f6c453);-webkit-background-clip:text;background-clip:text;color:transparent}
+.search{
+  background:rgba(13,37,60,.94)!important;
+  border-color:rgba(91,169,226,.4)!important;box-shadow:0 20px 50px rgba(0,0,0,.35)!important
+}
+.search button{min-height:48px}
+.train-visual{
+  height:315px!important;
+  background:
+    linear-gradient(180deg,rgba(1,7,14,.12),rgba(1,7,14,.82)),
+    url("https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=1200&q=85") center/cover!important;
+  animation:heroFloat 7s ease-in-out infinite;
+}
+.train-visual:after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(120deg,transparent 20%,rgba(70,190,255,.12),transparent 55%);
+  transform:translateX(-100%);animation:scan 6s infinite;
+}
+.train-icon{font-size:72px!important;text-shadow:0 0 30px rgba(40,190,255,.55);animation:trainPulse 2.5s ease-in-out infinite}
+.radar{animation:radarPulse 2.6s infinite}
+.radar:before{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  border:1px solid rgba(40,225,255,.25);animation:radarSweep 3s linear infinite;
+}
+.status-card{background:rgba(3,15,28,.97)!important}
+.feature,.tool-card,.demo,.seo-box{
+  background:linear-gradient(145deg,rgba(7,26,46,.98),rgba(4,17,31,.99))!important;
+  box-shadow:0 14px 40px rgba(0,0,0,.14);
+}
+.feature:hover,.tool-card:hover{transform:translateY(-6px)!important;box-shadow:var(--glow);transition:.28s}
+.grid4 .tool-card{position:relative;overflow:hidden}
+.grid4 .tool-card:before{
+  content:"";position:absolute;left:0;right:0;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,#159bff,#f6c453,transparent);opacity:.7
+}
+.dashboard{background:linear-gradient(180deg,rgba(3,16,31,.94),rgba(2,9,17,.98))!important}
+.map{min-height:500px!important;background:#e9e5d8!important;padding:0!important}
+.seo-box{border-color:rgba(72,141,193,.28)!important}
+.section-head h2{font-weight:850}
+footer{background:rgba(1,8,15,.7)}
+.premium-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 auto 20px;
+}
+.premium-stat{
+  padding:18px;border:1px solid rgba(60,125,170,.25);border-radius:15px;
+  background:rgba(7,25,42,.92)
+}
+.premium-stat b{display:block;font-size:21px}.premium-stat span{font-size:11px;color:#7895ae}
+.live-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:99px;
+  background:rgba(32,214,122,.1);border:1px solid rgba(32,214,122,.22);color:#5af0a2;font-size:11px;font-weight:800}
+.live-pill i{width:7px;height:7px;border-radius:50%;background:#35ed9d;box-shadow:0 0 12px #35ed9d;animation:blink 1.2s infinite}
+.seo-links{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.seo-links a{padding:8px 11px;border:1px solid #163b5d;border-radius:9px;color:#9fc7e7;font-size:12px}
+.seo-links a:hover{border-color:#2b92d5;color:#fff}
+@keyframes shine{0%,65%{transform:translateX(-90px) rotate(-35deg)}100%{transform:translateX(150px) rotate(-35deg)}}
+@keyframes heroFloat{50%{transform:translateY(-5px)}}
+@keyframes trainPulse{50%{transform:scale(1.04)}}
+@keyframes radarPulse{50%{box-shadow:0 0 0 30px rgba(22,167,255,.045),0 0 0 65px rgba(22,167,255,.018)}}
+@keyframes radarSweep{to{transform:rotate(360deg)}}
+@keyframes scan{50%,100%{transform:translateX(100%)}}
+@keyframes routeMove{to{filter:brightness(1.6);box-shadow:0 0 22px rgba(28,167,255,.9)}}
+@keyframes dotPulse{50%{transform:scale(1.45);box-shadow:0 0 28px #35ed9d}}
+@keyframes blink{50%{opacity:.3}}
+@media(max-width:800px){.premium-strip{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.premium-strip{grid-template-columns:1fr 1fr}.map{min-height:390px!important}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  </style>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Organization",
+    "name":"TrainVeyra",
+    "url":"https://trainveyra.in/",
+    "logo":"https://trainveyra.in/favicon.svg",
+    "description":"Indian railway information and train tracking platform."
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":"What is TrainVeyra?","acceptedAnswer":{"@type":"Answer","text":"TrainVeyra is an Indian railway information platform designed for train status, radar, timetables, station information, PNR and seat availability."}},
+      {"@type":"Question","name":"Is the train data live?","acceptedAnswer":{"@type":"Answer","text":"Yes. TrainVeyra uses live, real-time data for train tracking, PNR status and seat availability."}},
+      {"@type":"Question","name":"Can TrainVeyra work on mobile?","acceptedAnswer":{"@type":"Answer","text":"Yes. The interface is designed mobile-first and responsive."}}
+    ]
+  }
+  </script>
+
+</head>
+
+<body>
+<header>
+  <div class="container nav">
+    <a class="brand" href="#home" aria-label="TrainVeyra Home">
+      <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 48 48" width="28" height="28" fill="none">
+        <path d="M8 9h22c5 0 9 4 9 9v13H8V9Z" fill="white" opacity=".95"/>
+        <path d="M12 14h13M12 19h21" stroke="#0871e8" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M13 31l-4 7m26-7 4 7" stroke="white" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="15" cy="31" r="3" fill="#0871e8"/><circle cx="33" cy="31" r="3" fill="#0871e8"/>
+      </svg>
+    </span>
+      <span>TrainVeyra<small>TRACK • EXPLORE • TRAVEL</small></span>
+    </a>
+    <nav>
+      <a class="active" href="#home">Home</a>
+      <a href="#demo">Live Radar</a>
+      <a href="#demo">Train Status</a>
+      <a href="#demo">Station Status</a>
+      <a href="#demo">Timetable</a>
+      <a href="#" onclick="openModal('pnrModal');return false">PNR Status</a>
+      <a href="#seat-search">Seat Availability</a>
+    </nav>
+    <div class="nav-actions"><button class="icon-btn" aria-label="Toggle theme" onclick="toggleTheme()">☾</button><button class="icon-btn" aria-label="Menu" onclick="openModal('menuModal')">☰</button></div>
+  </div>
+</header>
+
+<main id="home">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> Modern Indian Railway Tracking</div>
+        <h1>India’s Smart Train <span>Tracking</span> Platform</h1>
+        <p>Live train location, real-time status, station information, timetable, PNR and seat availability — designed to be simple, fast and mobile friendly.</p>
+        <div class="search">
+          <input id="mainSearch" type="search" placeholder="Enter Train Number / Name (e.g. 12555, Rajdhani Express)" aria-label="Search train">
+          <button onclick="searchTrain()">⌕ &nbsp; Track</button>
+        </div>
+        <div class="chips">
+          <button class="chip" onclick="fillTrain('12555')">🚆 12555</button>
+          <button class="chip" onclick="fillTrain('12301')">🚆 12301</button>
+          <button class="chip" onclick="fillTrain('12951')">🚆 12951</button>
+          <button class="chip" onclick="fillTrain('12810')">🚆 12810</button>
+          <button class="chip" onclick="fillTrain('22439')">🚆 22439</button>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="train-visual">
+          <div class="radar"><div class="radar-dot"></div></div>
+          <div class="train-icon">🚆</div><div class="track"></div>
+        </div>
+        <div class="status-card">
+          <div class="status-head"><strong>12555 Rajdhani Express</strong><span class="badge running">Running</span></div>
+          <div class="route">New Delhi &nbsp;→&nbsp; Mumbai Central</div>
+          <div class="metrics"><div><b>82 km/h</b><small>Speed</small></div><div><b>+8 min</b><small>Delay</small></div><div><b>Kanpur</b><small>Next Stop</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container premium-strip" aria-label="TrainVeyra highlights">
+    <div class="premium-stat"><b>🚆 Smart Tracking</b><span>Train-focused search experience</span></div>
+    <div class="premium-stat"><b>🇮🇳 India Coverage</b><span>Designed around Indian rail journeys</span></div>
+    <div class="premium-stat"><b>⚡ Mobile First</b><span>Fast interface for phones</span></div>
+    <div class="premium-stat"><b><span class="live-pill"><i></i> LIVE DATA</span></b><span>Real-time tracking, updated live</span></div>
+  </div>
+
+  <div class="container feature-row">
+    <a class="feature" href="#demo"><div class="feature-icon">◉</div><div><b>Live Train Radar</b><span>Track trains on India map</span></div><strong>→</strong></a>
+    <a class="feature" href="#demo"><div class="feature-icon">🚆</div><div><b>Train Status</b><span>Get live running status</span></div><strong>→</strong></a>
+    <a class="feature" href="#demo"><div class="feature-icon">🏛</div><div><b>Station Status</b><span>Arrivals & departures</span></div><strong>→</strong></a>
+    <a class="feature" href="#demo"><div class="feature-icon">◷</div><div><b>Train Timetable</b><span>Full schedule & route</span></div><strong>→</strong></a>
+  </div>
+
+  <section>
+    <div class="container">
+      <div class="section-head"><div><h2>Railway Tools</h2><p>Everything you need before and during your train journey.</p></div></div>
+      <div class="grid4">
+        <article class="tool-card" id="radar"><div class="tool-symbol">🛰️</div><h3>Live Train Radar</h3><p>Live map view of your train's real-time GPS position on the route.</p><a class="go" href="#demo">Open Radar →</a></article>
+        <article class="tool-card" id="status"><div class="tool-symbol">🚆</div><h3>Live Train Status</h3><p>Search by train number or name and view live location, delay and upcoming stations.</p><a class="go" href="#demo">Check Status →</a></article>
+        <article class="tool-card" id="station"><div class="tool-symbol">🚉</div><h3>Station Status</h3><p>See every stop on the route with departed, current and upcoming station status.</p><a class="go" href="#demo">Station Board →</a></article>
+        <article class="tool-card" id="timetable"><div class="tool-symbol">🕐</div><h3>Train Timetable</h3><p>Complete route, scheduled arrival/departure and station-wise journey details.</p><a class="go" href="#demo">View Timetable →</a></article>
+        <article class="tool-card" id="pnr"><div class="tool-symbol">🎫</div><h3>PNR Status</h3><p>Live PNR lookup with booking status, coach, berth and chart preparation.</p><a class="go" href="#" onclick="openModal('pnrModal');return false">Check PNR →</a></article>
+        <article class="tool-card" id="seat"><div class="tool-symbol">💺</div><h3>Seat Availability</h3><p>Check live availability by train, journey date, class and quota.</p><a class="go" href="#seat-search">Check Seats →</a></article>
+        <article class="tool-card"><div class="tool-symbol">🧭</div><h3>Trains Between Stations</h3><p>Find suitable trains between any two stations with filters for time and class.</p><a class="go" href="#" onclick="openModal('routeModal');return false">Find Trains →</a></article>
+        <article class="tool-card"><div class="tool-symbol">📍</div><h3>Nearby Stations</h3><p>Future location-based station finder designed for mobile users.</p><a class="go" href="#" onclick="openModal('comingModal');return false">Coming Soon →</a></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard" id="demo">
+    <div class="container">
+      <div class="section-head"><div><h2>TrainVeyra Radar Experience</h2><p>Live radar powered by real-time train tracking data.</p></div></div>
+      <div class="demo-grid">
+        <div class="demo map">
+          <div class="map-header">
+            <span class="live-pill-map"><i></i> Live Map View</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+              <label class="map-filter-toggle"><input type="checkbox" id="showAllStopsToggle" onchange="toggleStopVisibility()"> Show all stations</label>
+              <div class="map-toggle">
+                <button class="toggle-btn active" id="btnMapView" onclick="setMapView('map')">🗺️ Map</button>
+                <button class="toggle-btn" id="btnSatView" onclick="setMapView('sat')">🛰️ Satellite</button>
+              </div>
+            </div>
+          </div>
+          <div id="liveMap"></div>
+          <div class="map-legend">
+            <div class="legend-row"><span class="dot-legend blue"></span>Train (Live Position)</div>
+            <div class="legend-row"><span class="line-legend"></span>Route</div>
+            <div class="legend-row"><span class="dot-legend" style="background:#22c55e"></span>Currently Here</div>
+            <div class="legend-row"><span class="dot-legend" style="background:#ef4444"></span>Departed</div>
+            <div class="legend-row"><span class="dot-legend" style="background:#f6c453"></span>Upcoming</div>
+          </div>
+        </div>
+        <div class="demo">
+          <div class="demo-top"><h3 id="statusTitle">Search a train to begin</h3><div class="tabs"><button class="tab active">Live</button></div></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <label for="statusDate" style="font-size:11px;color:#8fa8c0">Journey date (for daily trains):</label>
+            <input id="statusDate" type="date" style="background:#0b243d;color:#fff;border:1px solid #1d4566;border-radius:8px;padding:6px 9px;font-size:12px" onchange="if(lastSearchedTrainNo) loadLiveTrain(lastSearchedTrainNo)">
+          </div>
+          <div id="statusInfoRow" style="display:flex;gap:18px;margin-bottom:12px;color:#9eb4ca;font-size:12px;flex-wrap:wrap"><span>Enter a train number/name above and hit Search</span></div>
+          <label class="map-filter-toggle" style="margin-bottom:14px" id="timelineFilterWrap">
+            <input type="checkbox" id="showAllStopsToggleList" onchange="document.getElementById('showAllStopsToggle').checked=this.checked; toggleStopVisibility()"> Show all stations (incl. non-halt crossings)
+          </label>
+          <div class="timeline" id="statusTimeline"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container seo-box">
+      <h2>TrainVeyra — Train Status, Live Radar, PNR & Seat Availability</h2>
+      <p>TrainVeyra is a fast, mobile-first railway information platform built on live, real-time railway data.</p>
+      <ul>
+        <li>Search Indian trains by number or name.</li>
+        <li>Live train radar, running status and station-wise journey progress.</li>
+        <li>Live PNR status and seat availability lookup.</li>
+        <li>SEO-ready metadata, canonical URL, structured data and descriptive content.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+
+  <section id="seo-pages">
+    <div class="container seo-box">
+      <h2>Indian Train Information Hub</h2>
+      <p>Explore dedicated TrainVeyra information pages for train running status, live train tracking, railway stations, train timetables, PNR information and seat availability. These pages are designed as search-friendly entry points for Indian railway travellers.</p>
+      <div class="seo-links">
+        <a href="#status">Train Running Status</a>
+        <a href="#radar">Live Train Radar</a>
+        <a href="#timetable">Train Timetable</a>
+        <a href="#station">Station Status</a>
+        <a href="#pnr">PNR Status</a>
+        <a href="#seat-search">Seat Availability</a>
+      </div>
+    </div>
+  </section>
+
+
+<section class="dashboard" id="seat-search">
+  <div class="container">
+    <div class="section-head">
+      <div><h2>Seat Availability — From &amp; To</h2>
+      <p>Know the train number? Enter it directly. Otherwise just fill From &amp; To and pick from the list of trains running that route.</p></div>
+      <span class="live-pill"><i></i> SMART SEARCH</span>
+    </div>
+    <div class="demo">
+      <div class="form">
+        <label>Train Number <span style="color:#6f8aa5;font-weight:400">(optional — leave blank to see all trains on this route)</span></label>
+        <input id="seatTrainNo" placeholder="e.g. 12952 (optional)" inputmode="numeric" maxlength="5">
+        <label>From Station</label>
+        <input id="seatFrom" list="stationListFrom" placeholder="e.g. Dehradun or DDN" autocomplete="off">
+        <datalist id="stationListFrom"></datalist>
+        <label>To Station</label>
+        <input id="seatTo" list="stationListTo" placeholder="e.g. Haridwar or HW" autocomplete="off">
+        <datalist id="stationListTo"></datalist>
+        <div class="premium-strip" style="margin:4px 0 0">
+          <div class="premium-stat"><b id="fromCode">—</b><span>From station code</span></div>
+          <div class="premium-stat"><b id="toCode">—</b><span>To station code</span></div>
+        </div>
+        <div class="form" style="grid-template-columns:1fr 1fr;gap:12px">
+          <input id="seatDate" type="date" aria-label="Journey date">
+          <select id="seatClass"><option>SL</option><option>3A</option><option>2A</option><option>1A</option><option>CC</option><option>2S</option></select>
+        </div>
+        <div class="form" style="grid-template-columns:1fr;gap:12px">
+          <select id="seatQuota" aria-label="Quota">
+            <option value="GN">General (GN)</option>
+            <option value="TQ">Tatkal (TQ)</option>
+            <option value="PT">Premium Tatkal (PT)</option>
+            <option value="LD">Ladies (LD)</option>
+            <option value="SS">Senior Citizen (SS)</option>
+          </select>
+        </div>
+        <button class="primary" onclick="checkSeatAvailability()">Check Seat Availability / Find Trains</button>
+        <div id="seatResult" class="notice" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="seo-hub">
+  <div class="container seo-box">
+    <h2>TrainVeyra Railway Information Hub</h2>
+    <p>TrainVeyra combines train running status, live train radar, train timetables, station status, PNR status and seat availability into one responsive railway information website.</p>
+    <div class="seo-links">
+      <a href="#status">Train Running Status</a><a href="#radar">Live Train Radar</a>
+      <a href="#timetable">Train Timetable</a><a href="#station">Station Status</a>
+      <a href="#pnr">PNR Status</a><a href="#seat-search">Seat Availability</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div><h4>TrainVeyra</h4><div>Track • Explore • Travel</div><p>Modern tools for Indian train journeys.</p></div>
+      <div><h4>Train Tools</h4><a href="#radar">Live Radar</a><a href="#status">Train Status</a><a href="#timetable">Timetable</a></div>
+      <div><h4>Travel Tools</h4><a href="#pnr">PNR Status</a><a href="#seat">Seat Availability</a><a href="#station">Station Status</a></div>
+      <div><h4>Information</h4><a href="#home">About TrainVeyra</a><a href="#home">Privacy Policy</a><a href="#home">Terms</a></div>
+    </div>
+    <div class="copyright"><span>© 2026 TrainVeyra.in — All rights reserved.</span><span>Live data, updated in real time</span></div>
+  </div>
+</footer>
+
+<div class="modal" id="pnrModal"><div class="modal-box"><button class="close" onclick="closeModals()">×</button><h2>🎫 PNR Status</h2><p class="note">Live PNR status, updated in real time.</p><div class="form"><input id="pnrInput" maxlength="10" inputmode="numeric" placeholder="Enter 10-digit PNR"><button class="primary" onclick="checkPnrStatus()">Check PNR</button><div id="pnrResult" class="notice" style="display:none"></div></div></div></div>
+<div class="modal" id="routeModal"><div class="modal-box"><button class="close" onclick="closeModals()">×</button><h2>🧭 Trains Between Stations</h2><p class="note">Use the Seat Availability tool below — leave the train number blank and fill From &amp; To to see every train on that route.</p><div class="form"><button class="primary" onclick="closeModals();location.hash='seat-search';document.getElementById('seatFrom').focus()">Go to Seat Availability</button></div></div></div>
+<div class="modal" id="comingModal"><div class="modal-box"><button class="close" onclick="closeModals()">×</button><h2>📍 Coming Soon</h2><p class="note">This feature is already planned in the interface and can be activated when the required data service is connected.</p></div></div>
+<div class="modal" id="menuModal"><div class="modal-box"><button class="close" onclick="closeModals()">×</button><h2>TrainVeyra Menu</h2><div class="form"><button class="primary" onclick="closeModals();location.hash='demo'">Live Radar</button><button class="primary" onclick="closeModals();openModal('pnrModal')">PNR Status</button><button class="primary" onclick="closeModals();location.hash='seat-search'">Seat Availability</button></div></div></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  // ============================================================
+  // LIVE MAP (Leaflet) — replace demo route/marker data with your
+  // authorized railway-data API response when it is connected.
+  // ============================================================
+  let liveMap, trainMarker, mapTiles, satTiles, routeLine, startMarker, endMarker;
+  const startIcon = ()=>L.divIcon({className:'', html:'<div class="station-pin green"></div>', iconSize:[16,16]});
+  const endIcon = ()=>L.divIcon({className:'', html:'<div class="station-pin red"></div>', iconSize:[16,16]});
+  const trainIcon = ()=>L.divIcon({className:'', html:'<div class="train-pin">🚆</div>', iconSize:[30,30], iconAnchor:[15,15]});
+
+  const DEFAULT_ROUTE_COORDS = [
+    [28.6139,77.2090],[27.1767,78.0081],[26.2183,78.1828],[25.4484,78.5685],
+    [24.2,77.9],[23.2599,77.4126],[22.65,76.9],[21.5,75.2],[20.2,74.1],
+    [19.9975,73.7898],[19.0760,72.8777]
+  ];
+  let stopMarkers=[];
+  let showAllStops=false;      // hide non-halt "crossing" stations by default
+  let lastRenderedStops=null, lastRenderedMeta=null, lastCurrentLatLng=null;
+  let lastSearchedTrainNo=null, lastRouteData=null;
+  let lastRouteGeometry=null;
+
+  function initLiveMap(){
+    const el = document.getElementById('liveMap');
+    if(!el || typeof L === 'undefined') return;
+    liveMap = L.map(el, { zoomControl:false, scrollWheelZoom:false }).fitBounds(DEFAULT_ROUTE_COORDS, {padding:[30,30]});
+
+    mapTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors', maxZoom: 19, subdomains: ['a','b','c']
+    }).addTo(liveMap);
+    satTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri', maxZoom: 19
+    });
+
+    L.control.zoom({position:'topright'}).addTo(liveMap);
+
+    // No train searched yet — show the route only, no fake live numbers.
+    routeLine = L.polyline(DEFAULT_ROUTE_COORDS, {color:'#3a577a', weight:3, opacity:.7, dashArray:'2,8', lineJoin:'round'}).addTo(liveMap);
+    startMarker = L.marker(DEFAULT_ROUTE_COORDS[0], {icon:startIcon()}).addTo(liveMap)
+      .bindTooltip('Origin', {permanent:true, direction:'top', offset:[0,-6], className:'station-tt'});
+    endMarker = L.marker(DEFAULT_ROUTE_COORDS[DEFAULT_ROUTE_COORDS.length-1], {icon:endIcon()}).addTo(liveMap)
+      .bindTooltip('Destination', {permanent:true, direction:'top', offset:[0,-6], className:'station-tt'});
+    trainMarker = L.marker(DEFAULT_ROUTE_COORDS[5], {icon:trainIcon()}).addTo(liveMap)
+      .bindTooltip('Search a train above ↑', {permanent:true, direction:'right', offset:[16,-4], className:'train-tt'});
+  }
+
+  // stops: [{lat,lng,stationName,stationCode,status,isHalt,platform}] in route order
+  // currentPos: [lat,lng] interpolated live position
+  // meta: {number, name, speed, currentName, nextName, atStation}
+  function renderRouteOnMap(stops, currentPos, meta, geometryCoords){
+    if(!liveMap) return;
+    lastRenderedStops=stops; lastRenderedMeta=meta;
+    if(routeLine) liveMap.removeLayer(routeLine);
+    if(startMarker) liveMap.removeLayer(startMarker);
+    if(endMarker) liveMap.removeLayer(endMarker);
+    if(trainMarker) liveMap.removeLayer(trainMarker);
+    stopMarkers.forEach(m=>liveMap.removeLayer(m)); stopMarkers=[];
+
+    const coords = stops.map(s=>[s.lat,s.lng]);
+    // The line itself should only follow real halting stations — crossing points can carry
+    // noisy/duplicate coordinates that make the line zig-zag and look like a solid black band
+    // once zoomed out. Non-halt points are still shown as small dots (see below); they just
+    // don't get connected into the route line.
+    const haltCoords = stops.filter(s=>s.isHalt!==false).map(s=>[s.lat,s.lng]);
+    // Prefer RailRadar's real track geometry (high-density GIS LineString) so the blue
+    // route follows the railway track instead of drawing straight station-to-station chords.
+    // Fall back to halt coordinates only if geometry is unavailable.
+    const trackCoords = Array.isArray(geometryCoords) && geometryCoords.length > 1 ? geometryCoords : (haltCoords.length>1 ? haltCoords : coords);
+    routeLine = L.polyline(trackCoords, {color:'#1878ff', weight:4, opacity:.95, lineJoin:'round', lineCap:'round', smoothFactor:.35}).addTo(liveMap);
+
+    startMarker = L.marker(coords[0], {icon:startIcon()}).addTo(liveMap)
+      .bindTooltip(stops[0].stationName||'Start', {permanent:true, direction:'top', offset:[0,-6], className:'station-tt'});
+    endMarker = L.marker(coords[coords.length-1], {icon:endIcon()}).addTo(liveMap)
+      .bindTooltip(stops[stops.length-1].stationName||'End', {permanent:true, direction:'top', offset:[0,-6], className:'station-tt'});
+
+    // Intermediate stops: current = green, already departed/crossed = red, upcoming = yellow.
+    // Non-halt "crossing" points are hidden by default; the "Show all stations" toggle reveals them.
+    stops.slice(1,-1).forEach(s=>{
+      const cls = s.isCurrent ? 'current' : (s.status==='departed'||s.status==='arrived') ? 'departed' : 'upcoming';
+      const isMinor = s.isHalt===false && !s.isCurrent && !s.isNext;
+      const hideCls = (isMinor && !showAllStops) ? ' hidden-stop' : '';
+      const marker = L.marker([s.lat,s.lng], {icon:L.divIcon({className:'', html:`<div class="stop-dot ${cls}${hideCls}"></div>`, iconSize:[15,15], iconAnchor:[7,7]})}).addTo(liveMap);
+      // Label halting stations (has a platform, or is a scheduled halt) or the current/next station, to keep the map readable.
+      if((s.platform || s.isHalt || s.isCurrent || s.isNext) && !isMinor){
+        marker.bindTooltip(s.stationName, {permanent:true, direction:'top', offset:[0,-4], className:'stop-label'});
+      }
+      stopMarkers.push(marker);
+    });
+
+    // "Now at" only when the train is actually sitting at a station; once it has left, show Departed + Next.
+    const nowNext = meta.atStation
+      ? `<span class="now-next">Now at: <b>${meta.currentName||'—'}</b></span>`
+      : `<span class="now-next">Departed: <b>${meta.currentName||'—'}</b></span><span class="now-next">Next: <b>${meta.nextName||'—'}</b></span>`;
+    trainMarker = L.marker(currentPos, {icon:trainIcon()}).addTo(liveMap)
+      .bindTooltip(`<b>${meta.number} ${meta.name||''}</b><span>Speed: ${meta.speed!=null?meta.speed+' km/h':'—'}</span>${nowNext}`,
+        {permanent:true, direction:'right', offset:[16,-4], className:'train-tt'});
+
+    liveMap.fitBounds(coords, {padding:[30,30]});
+  }
+
+  // Toggle between halts-only and every route point, on both the map and the station list below it.
+  function toggleStopVisibility(){
+    const mapCb=document.getElementById('showAllStopsToggle'), listCb=document.getElementById('showAllStopsToggleList');
+    showAllStops = mapCb.checked || listCb.checked;
+    mapCb.checked = showAllStops; listCb.checked = showAllStops;
+    // Re-fetch rather than just re-filter: haltsOnly is sent to the API itself now,
+    // so toggling needs a fresh request to get (or drop) the crossing-station data.
+    if(lastSearchedTrainNo) loadLiveTrain(lastSearchedTrainNo);
+  }
+
+  function setMapView(mode){
+    if(!liveMap) return;
+    document.getElementById('btnMapView').classList.toggle('active', mode==='map');
+    document.getElementById('btnSatView').classList.toggle('active', mode==='sat');
+    if(mode==='sat'){ liveMap.removeLayer(mapTiles); satTiles.addTo(liveMap); }
+    else { liveMap.removeLayer(satTiles); mapTiles.addTo(liveMap); }
+  }
+
+  document.addEventListener('DOMContentLoaded', initLiveMap);
+  // If the demo section loads after user interaction/lazy render, also try on load:
+  window.addEventListener('load', ()=>{ if(!liveMap) initLiveMap(); else liveMap.invalidateSize(); });
+
+  // ============================================================
+  // API LIVE — via TrainVeyra's own backend proxy (netlify/functions/railradar.js)
+  // The RailRadar API key lives ONLY on the server (Netlify env var), never here.
+  // ============================================================
+  const API_CONFIG = {
+    proxyUrl: "/.netlify/functions/railradar"
+  };
+
+  async function railradarGet(path, params){
+    const url = new URL(API_CONFIG.proxyUrl, location.origin);
+    url.searchParams.set('path', path);
+    Object.entries(params||{}).forEach(([k,v])=>{ if(v!==undefined && v!==null && v!=='') url.searchParams.set(k,v); });
+    let res, json;
+    try{
+      res = await fetch(url.toString());
+      json = await res.json();
+    }catch(e){
+      throw new Error('Could not reach the server. Check your internet connection.');
+    }
+    if(!res.ok || json.success===false){
+      const msg=(json && json.error && json.error.message) || ('Request failed ('+res.status+')');
+      throw new Error(msg);
+    }
+    return json.data;
+  }
+
+  // Positive = running late (+Xmin, orange/red). Negative = running early (-Xmin, green). 0/absent = On Time.
+  function formatDelay(mins, opts){
+    opts=opts||{};
+    if(mins===null || mins===undefined || isNaN(mins)) return {text: opts.fallback||'—', color:'#9db1c9'};
+    if(mins===0) return {text:'On Time', color:'#48e994'};
+    if(mins>0) return {text:'+'+mins+' min', color:'#ffbd61'};
+    return {text:mins+' min', color:'#48e994'};
+  }
+  function overallDelayLabel(mins){
+    if(mins===null || mins===undefined || isNaN(mins)) return 'Status —';
+    if(mins===0) return 'On Time';
+    if(mins>0) return 'Running late by '+mins+' min';
+    return 'Running early by '+Math.abs(mins)+' min';
+  }
+
+  function fillTrain(value){ document.getElementById('mainSearch').value=value; document.getElementById('mainSearch').focus(); searchTrain(); }
+
+  async function searchTrain(){
+    const raw=document.getElementById('mainSearch').value.trim();
+    if(!raw){ alert('Please enter a train number or train name.'); return; }
+    document.getElementById('demo').scrollIntoView({behavior:'smooth'});
+    const titleEl=document.getElementById('statusTitle'), infoEl=document.getElementById('statusInfoRow'), tlEl=document.getElementById('statusTimeline');
+    titleEl.textContent='Searching '+raw+' …'; infoEl.innerHTML=''; tlEl.innerHTML='';
+    try{
+      let number = /^\d{4,5}$/.test(raw) ? raw : null;
+      if(!number){
+        const results = await railradarGet('/lookup/search/trains', { q: raw, limit: 10 });
+        if(!results || !results.length) throw new Error('No matching train found for "'+raw+'".');
+        number = results[0].number;
+      }
+      await loadLiveTrain(number);
+    }catch(err){
+      titleEl.textContent='Could not load train';
+      infoEl.innerHTML='<span style="color:#ff8686">'+err.message+'</span>';
+    }
+  }
+
+  // Renders the station-by-station list. Halt-only by default (showAllStops toggles this);
+  // current = green, already departed/crossed = red, upcoming = yellow.
+  function renderTimeline(stops, prevCode, nextCode){
+    const tlEl=document.getElementById('statusTimeline');
+    const visible = showAllStops ? stops : stops.filter(s=>s.isHalt!==false || s.stationCode===prevCode || s.stationCode===nextCode);
+    tlEl.innerHTML = visible.map(s=>{
+      const isCurrent = s.stationCode===prevCode;
+      const isNext = s.stationCode===nextCode;
+      const isPast = (s.status==='departed'||s.status==='arrived') && !isCurrent;
+      const railColor = isCurrent ? '#22c55e' : isPast ? '#ef4444' : '#f6c453';
+      const delayVal = s.delayArrival!=null?s.delayArrival:s.delayDeparture;
+      const d = s.status==='upcoming' ? formatDelay(delayVal,{fallback:'ETA'}) : formatDelay(delayVal);
+      const statusLabel = isCurrent ? 'Currently Here' : s.status==='departed'?'Departed':s.status==='arrived'?'Arrived':isNext?'Next Stop':'Upcoming';
+      return `<div class="stop"${isCurrent?' style="background:rgba(34,197,94,.08);border-radius:8px;padding:4px 6px;margin:-4px -6px"':''}><span class="rail" style="border-color:${railColor}"></span><div><b>${s.stationName||s.stationCode}</b><small>${statusLabel}${s.platform?(' • PF '+s.platform):''}${s.isHalt===false?' • Crossing':''}</small></div><time style="color:${d.color}">${d.text}</time></div>`;
+    }).join('');
+  }
+
+  async function loadLiveTrain(number){
+    const titleEl=document.getElementById('statusTitle'), infoEl=document.getElementById('statusInfoRow');
+    lastSearchedTrainNo=number;
+    const dateVal=(document.getElementById('statusDate')||{}).value;
+    // haltsOnly is a server-side filter (RailRadar API) — ask for only real halting
+    // stations by default, and the full list (incl. non-halt crossings) only when the
+    // "Show all stations" toggle is on. This is more reliable than filtering client-side
+    // on isHalt, and it's also what keeps the route line clean (see renderRouteOnMap).
+    const params = { includeCoordinates:true, haltsOnly: !showAllStops };
+    if(dateVal) params.date=dateVal;
+    const data = await railradarGet('/trains/'+number+'/live', params);
+    // Fetch the actual railway track geometry separately. The live endpoint gives station
+    // points, while /route provides the high-density GIS LineString for the map.
+    let geometryCoords=null;
+    try{
+      const geo=await railradarGet('/trains/'+number+'/route', {format:'geojson', stops:false});
+      const raw=geo && geo.geojson && geo.geojson.geometry && geo.geojson.geometry.coordinates;
+      if(Array.isArray(raw)){
+        geometryCoords=raw.filter(c=>Array.isArray(c)&&c.length>=2).map(c=>[Number(c[1]),Number(c[0])]).filter(c=>Number.isFinite(c[0])&&Number.isFinite(c[1]));
+      }
+    }catch(e){
+      geometryCoords=null;
+    }
+    lastRouteGeometry=geometryCoords;
+    const t=data.train||{};
+    titleEl.textContent = number+' '+(t.name||data.trainName||'');
+    const cur=data.currentLocation||{};
+    const stops=(data.route||[]);
+
+    // currentLocation.stationCode is the authoritative "where the train actually is" field —
+    // in real responses it can be one station AHEAD of `previousHalt` (e.g. train has departed
+    // AYC but previousHalt still says AY), so prefer it as the interpolation anchor.
+    const prevCode = cur.stationCode || (data.previousHalt||{}).stationCode;
+    const nextCode=(data.nextHalt||{}).stationCode;
+    const prevStop=stops.find(s=>s.stationCode===prevCode);
+    const nextStop=stops.find(s=>s.stationCode===nextCode);
+    const currentName = cur.stationName || (prevStop && prevStop.stationName) || cur.stationCode || '—';
+    const nextName = (nextStop && nextStop.stationName) || '—';
+    // The train is only "at" a station while it hasn't departed yet; once it departs, show Departed + Next only.
+    const atStation = !!cur.stationCode && cur.status!=='departed';
+    // Real responses don't always put speedKmh on currentLocation — fall back to the speed
+    // recorded for the segment leaving the current/previous halting station.
+    const speedKmh = cur.speedKmh!=null ? cur.speedKmh : (prevStop && prevStop.speedToNextStationKmph!=null ? prevStop.speedToNextStationKmph : null);
+
+    const overall = formatDelay(data.delayMinutes);
+    const startedLabel = data.startDate ? `<span>🗓 Started: <strong style="color:#fff">${data.startDate}</strong></span>` : '';
+    const locationLabel = atStation
+      ? `<span>📍 Now at: <strong style="color:#fff">${currentName}</strong></span>`
+      : `<span>📍 Departed: <strong style="color:#fff">${currentName}</strong></span><span>➜ Next: <strong style="color:#fff">${nextName}</strong></span>`;
+    infoEl.innerHTML = `${locationLabel}<span>⚡ ${speedKmh!=null?speedKmh+' km/h':'—'}</span><span style="color:${overall.color};font-weight:700">⏱ ${overallDelayLabel(data.delayMinutes)}</span>${startedLabel}`;
+
+    lastRouteData = { stops, prevCode, nextCode };
+    renderTimeline(stops, prevCode, nextCode);
+
+    // Update the live map with this train's real route + interpolated position
+    const withCoords = stops.filter(s=>typeof s.lat==='number' && typeof s.lng==='number')
+      .map(s=>({...s, isCurrent:s.stationCode===prevCode, isNext:s.stationCode===nextCode}));
+    if(withCoords.length>1){
+      const prevC=withCoords.find(s=>s.stationCode===prevCode);
+      const nextC=withCoords.find(s=>s.stationCode===nextCode);
+      let currentLatLng;
+      // Never invent a 50% position when RailRadar already gives the actual coordinates.
+      // This fixes the train appearing ahead/behind the station while it is at a halt.
+      const liveCoords = cur.coordinates && Number.isFinite(Number(cur.coordinates.lat)) && Number.isFinite(Number(cur.coordinates.lng))
+        ? [Number(cur.coordinates.lat), Number(cur.coordinates.lng)] : null;
+      if(liveCoords){
+        currentLatLng=liveCoords;
+      } else if(prevC && nextC && cur.segmentProgress!=null){
+        const p=Math.max(0,Math.min(1,Number(cur.segmentProgress)));
+        currentLatLng=[ prevC.lat+(nextC.lat-prevC.lat)*p, prevC.lng+(nextC.lng-prevC.lng)*p ];
+      } else {
+        const curStop=prevC || withCoords[0];
+        currentLatLng=[curStop.lat,curStop.lng];
+      }
+      lastCurrentLatLng=currentLatLng;
+      renderRouteOnMap(withCoords, currentLatLng, {
+        number, name:t.name, speed:speedKmh, currentName, nextName, atStation
+      }, geometryCoords);
+    }
+  }
+
+  // Colour a booking/current status string based on CNF / RAC / WL / CAN.
+  function pnrStatusColor(p){
+    if(p && p.isCancelled) return '#ff7777';
+    if(p && p.isConfirmed) return '#48e994';
+    if(p && p.isRAC) return '#ffc064';
+    if(p && p.isWaitlisted) return '#ffc064';
+    const s=((p&&p.current&&p.current.status)||(p&&p.currentStatus)||'').toUpperCase();
+    if(s.startsWith('CAN')) return '#ff7777';
+    if(s.startsWith('CNF')) return '#48e994';
+    if(s.startsWith('RAC')||s.includes('WL')) return '#ffc064';
+    return '#dce8f6';
+  }
+
+  async function checkPnrStatus(){
+    const pnr=document.getElementById('pnrInput').value.trim();
+    const out=document.getElementById('pnrResult');
+    out.style.display='block';
+    if(!/^\d{10}$/.test(pnr)){ out.innerHTML='<strong>Please enter a valid 10-digit PNR number.</strong>'; return; }
+    out.innerHTML='Checking PNR '+pnr+' …';
+    try{
+      const data=await railradarGet('/pnr/'+pnr);
+      const train=data.train||{};
+      const source=train.source||{}, destination=train.destination||{};
+      // Real RailRadar responses put journey date/class on `train` itself, not a
+      // separate `journey` object — but keep the fallback in case that ever changes.
+      const journeyDate = train.journeyDate || (data.journey||{}).date;
+      const journeyClass = train.journeyClass || (data.journey||{}).class;
+      const charting=data.charting||{};
+      const passengers=data.passengers||[];
+      let html = `<strong>${train.number||''} ${train.name||''}</strong><br>`;
+      if(source.name || destination.name) html += `${source.name||'—'} → ${destination.name||'—'}<br>`;
+      if(journeyDate || journeyClass) html += `Journey: ${journeyDate||'—'} • Class ${journeyClass||'—'}<br>`;
+      if(charting.status) html += `Chart: ${charting.status}`;
+      if(passengers.length){
+        html += passengers.map((p,i)=>{
+          // Real API nests booking/current status under p.booking{} / p.current{} objects
+          // (booking.status, booking.formatted, current.status, current.formatted, current.coachId,
+          // current.berthNo, current.quota) — NOT flat p.bookingStatus/p.coach/p.berthNumber as the
+          // public docs example suggests. Support both shapes so this keeps working either way.
+          const bookingObj = p.booking || {};
+          const currentObj = p.current || {};
+          const booking = bookingObj.formatted || bookingObj.status || p.bookingStatus || '—';
+          const current = currentObj.formatted || currentObj.status || p.currentStatus || booking;
+          const color=pnrStatusColor(p);
+          const coach = currentObj.coachId || bookingObj.coachId || p.coach || p.coachNumber || null;
+          const berthNum = currentObj.berthNo!=null ? currentObj.berthNo
+            : bookingObj.berthNo!=null ? bookingObj.berthNo
+            : p.berthNumber!=null ? p.berthNumber
+            : (p.berth && p.berth.number!=null ? p.berth.number : null);
+          const berthCode = currentObj.berthCode || p.berthCode || (p.berth && p.berth.code) || null;
+          const coachPos = p.coachPosition || p.coachPos || null;
+          const quota = currentObj.quota || bookingObj.quota || null;
+          let seat='Not yet allotted';
+          if(coach || berthNum!=null){
+            seat = `Coach ${coach||'—'}${coachPos?(' (Pos '+coachPos+')'):''} • Berth ${berthNum!=null?berthNum:'—'}${berthCode?(' ('+berthCode+')'):''}${quota?(' • '+quota+' quota'):''}`;
+          } else if(p.isWaitlisted || /WL/i.test(booking) || /WL/i.test(current)){
+            seat = 'No berth yet — waitlisted, allotted only on confirmation';
+          } else if(p.isRAC){
+            seat = 'RAC — shared berth, allotted at boarding/chart time';
+          }
+          return `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #16324c">
+            <strong>Passenger ${p.serialNumber||p.passengerNumber||(i+1)}</strong><br>
+            Booking: ${booking} → Current: <strong style="color:${color}">${current}</strong><br>
+            Seat / Coach: <strong style="color:${color}">${seat}</strong>
+          </div>`;
+        }).join('');
+      }
+      if(Array.isArray(data.informationMessage) && data.informationMessage.length){
+        html += `<div style="margin-top:10px;color:#8fa8c0;font-size:12px">${data.informationMessage.join(' • ')}</div>`;
+      }
+      out.innerHTML = html || 'No PNR details found in the response.';
+
+      // Also show current seat availability for this train/route/class — uses the same
+      // fields the PNR itself just gave us, so no extra typing needed.
+      if(train.number && source.code && destination.code && journeyDate && journeyClass){
+        const quotaForAvl = (passengers[0] && (passengers[0].current||{}).quota) || (passengers[0] && (passengers[0].booking||{}).quota) || 'GN';
+        out.innerHTML += `<div id="pnrSeatAvl" style="margin-top:12px;padding-top:12px;border-top:1px solid #16324c;font-size:13px;color:#8fa8c0">Checking live seat availability…</div>`;
+        try{
+          const avl = await railradarGet('/trains/'+train.number+'/seats', {
+            source: source.code, destination: destination.code, journeyDate, classCode: journeyClass, quotaCode: quotaForAvl
+          });
+          const pnrAvailability = Array.isArray(avl.avlDayList) ? avl.avlDayList : (Array.isArray(avl.availability) ? avl.availability : (Array.isArray(avl.availabilityList) ? avl.availabilityList : []));
+          const rows=pnrAvailability.slice(0,3).map(d=>{
+            const day=d.availablityDate || d.availabilityDate || d.date || d.journeyDate || '';
+            const status=d.availablityStatus || d.availabilityStatus || d.status || d.value || '';
+            return `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${day||'—'}</span><span>${seatStatusBadge(status)}</span></div>`;
+          }).join('') || `No live availability data returned for ${journeyClass} / ${quotaForAvl} on this route.`;
+          document.getElementById('pnrSeatAvl').innerHTML = `<strong style="color:#dce8f6">Live seat availability (${journeyClass} • ${quotaForAvl})</strong>${rows}`;
+        }catch(e){
+          document.getElementById('pnrSeatAvl').innerHTML = `<span style="color:#9db1c9">Could not load live seat availability: ${e.message}</span>`;
+        }
+      }
+    }catch(err){
+      out.innerHTML='<strong>Could not fetch PNR status.</strong><br><span style="color:#9db1c9">'+err.message+'</span>';
+    }
+  }
+
+  function openModal(id){ document.getElementById(id).classList.add('open'); }
+  function closeModals(){ document.querySelectorAll('.modal').forEach(m=>m.classList.remove('open')); }
+  document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+  function futureFeature(name){ alert(name+' is coming soon on TrainVeyra.'); }
+  function toggleTheme(){
+      document.body.classList.toggle('light-preview');
+      const on=document.body.classList.contains('light-preview');
+      localStorage.setItem('tvTheme',on?'light':'dark');
+    }
+    try{
+      if(localStorage.getItem('tvTheme')==='light') document.body.classList.add('light-preview');
+    }catch(e){}
+  // ===== Live station search + seat availability / trains-between-stations =====
+  // Stations are resolved live from the full RailRadar station directory (not a fixed demo list),
+  // so any station in India can be typed here, not just a short hardcoded set.
+  const stationCache = new Map(); // lowercase query -> [{code,name,city}]
+  let stationSearchSeq = 0;
+
+  function debounce(fn, ms){
+    let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); };
+  }
+
+  async function searchStationsLive(q){
+    const key=(q||'').trim().toLowerCase();
+    if(key.length<2) return [];
+    if(stationCache.has(key)) return stationCache.get(key);
+    try{
+      const results = await railradarGet('/lookup/search/stations', { q:key, limit:20 }) || [];
+      stationCache.set(key, results);
+      return results;
+    }catch(e){ return []; }
+  }
+
+  function wireStationAutocomplete(inputId, datalistId, codeElId){
+    const input=document.getElementById(inputId), dl=document.getElementById(datalistId);
+    if(!input||!dl) return;
+    const run = debounce(async ()=>{
+      const seq=++stationSearchSeq;
+      const results = await searchStationsLive(input.value);
+      if(seq!==stationSearchSeq) return; // a newer keystroke superseded this lookup
+      dl.innerHTML='';
+      results.forEach(s=>{
+        const o=document.createElement('option');
+        o.value = `${s.name} (${s.code})`;
+        dl.appendChild(o);
+      });
+      updateResolvedCode(inputId, codeElId);
+    }, 250);
+    input.addEventListener('input', ()=>{ run(); updateResolvedCode(inputId, codeElId); });
+  }
+
+  // Parses "Station Name (CODE)" back into {code,name}; falls back to a cached lookup match.
+  function resolveStationInput(inputId){
+    const val=(document.getElementById(inputId)||{}).value||'';
+    const m=val.match(/\(([A-Za-z]{2,5})\)\s*$/);
+    if(m) return { code:m[1].toUpperCase(), name:val.replace(/\s*\([A-Za-z]{2,5}\)\s*$/,'').trim() };
+    // User typed a bare code or name without picking from the list — check the cache for an exact/substring match.
+    const q=val.trim().toLowerCase();
+    for(const results of stationCache.values()){
+      const hit=results.find(s=>s.code.toLowerCase()===q || s.name.toLowerCase()===q);
+      if(hit) return hit;
+    }
+    return null;
+  }
+  function updateResolvedCode(inputId, codeElId){
+    const s=resolveStationInput(inputId);
+    document.getElementById(codeElId).textContent = s ? s.code : '—';
+  }
+
+  wireStationAutocomplete('seatFrom','stationListFrom','fromCode');
+  wireStationAutocomplete('seatTo','stationListTo','toCode');
+
+  function fmtHM(hhmm){ return hhmm||'—'; }
+
+  // Renders the list of trains found between two stations, each with a "Check Seats" button
+  // that fills the train number and re-runs the seat lookup for that specific train.
+  function renderTrainList(list, f, t, date, cls){
+    if(!list || !list.length) return '<div>No trains found on this route for the selected date.</div>';
+    return list.map(item=>{
+      const tr=item.train||{};
+      const dep=(item.from||{}).departure, arr=(item.to||{}).arrival;
+      const live=item.live||{};
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #16324c">
+        <div>
+          <strong>${tr.number||''} ${tr.name||''}</strong><br>
+          <span style="color:#8fa8c0;font-size:12px">${fmtHM(dep)} → ${fmtHM(arr)}${tr.type?(' • '+tr.type):''}${live.delayMinutes!=null?(' • '+overallDelayLabel(live.delayMinutes)):''}</span>
+        </div>
+        <button class="primary" style="padding:8px 12px;white-space:nowrap" onclick="document.getElementById('seatTrainNo').value='${tr.number}'; checkSeatAvailability();">Check Seats</button>
+      </div>`;
+    }).join('');
+  }
+
+  // Colour + label an avlDayList status string, e.g. "AVAILABLE-0042", "RAC 12", "GNWL24/WL11".
+  function seatStatusBadge(status){
+    const s=(status||'').toUpperCase();
+    let color='#dce8f6', label=status||'—';
+    if(s.startsWith('AVAILABLE') || s==='AVAILABLE') color='#48e994';
+    else if(s.startsWith('RAC')) color='#ffc064';
+    else if(s.includes('WL') || s.includes('NOSB')) color='#ff8686';
+    else if(s.includes('REGRET') || s.includes('NOT AVAIL')) color='#ff7777';
+    return `<strong style="color:${color}">${label}</strong>`;
+  }
+
+  async function checkSeatAvailability(){
+    const trainNo=document.getElementById('seatTrainNo').value.trim();
+    const f=resolveStationInput('seatFrom');
+    const t=resolveStationInput('seatTo');
+    const date=document.getElementById('seatDate').value;
+    const cls=document.getElementById('seatClass').value;
+    const quota=(document.getElementById('seatQuota')||{}).value||'GN';
+    const out=document.getElementById('seatResult');
+    out.style.display='block';
+    if(!f||!t){ out.innerHTML='<strong>Please pick valid railway stations from the suggestions.</strong><br>Example: Dehradun → Haridwar Jn (HW).'; return; }
+    if(f.code===t.code){ out.innerHTML='<strong>From and To stations must be different.</strong>'; return; }
+    if(!date){ out.innerHTML='<strong>Please select a journey date.</strong>'; return; }
+
+    // No train number given: look up every train running this route and let the user pick one.
+    if(!trainNo){
+      out.innerHTML='Finding trains between '+f.name+' and '+t.name+' …';
+      try{
+        const data=await railradarGet('/trains/between/'+f.code+'/'+t.code, { date, live:true });
+        out.innerHTML=`<strong>${f.name} (${f.code}) → ${t.name} (${t.code})</strong><br>
+          <span style="color:#8fa8c0;font-size:12px">${(data.count!=null?data.count:(data.trains||[]).length)} train(s) found for ${date}. Pick one to check seat availability.</span>
+          <div style="margin-top:8px">${renderTrainList(data.trains, f, t, date, cls)}</div>`;
+      }catch(err){
+        out.innerHTML='<strong>'+err.message+'</strong>';
+      }
+      return;
+    }
+
+    if(!/^\d{4,5}$/.test(trainNo)){ out.innerHTML='<strong>Please enter a valid train number, or leave it blank to see all trains on this route.</strong>'; return; }
+    out.innerHTML='Checking availability …';
+    try{
+      const data=await railradarGet('/trains/'+trainNo+'/seats', {
+        source:f.code, destination:t.code, journeyDate:date, classCode:cls, quotaCode:quota
+      });
+      const availabilityList = Array.isArray(data.avlDayList) ? data.avlDayList : (Array.isArray(data.availability) ? data.availability : (Array.isArray(data.availabilityList) ? data.availabilityList : []));
+      const rows=availabilityList.map(d=>{
+        const day=d.availablityDate || d.availabilityDate || d.date || d.journeyDate || '';
+        const status=d.availablityStatus || d.availabilityStatus || d.status || d.value || '';
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #16324c"><span>${day||'—'}</span><span>${seatStatusBadge(status)}</span></div>`;
+      }).join('') || `<div>No availability data returned by RailRadar for ${cls} / ${quota} on this route/date. Try another class or quota.</div>`;
+      out.innerHTML=`<strong>${data.trainName||''} (${data.trainNumber||trainNo})</strong><br>
+        ${f.name} (${f.code}) → ${t.name} (${t.code}) • Class ${data.classCode||cls} • Quota ${data.quotaCode||quota}
+        <div style="margin-top:8px">${rows}</div>`;
+    }catch(err){
+      out.innerHTML='<strong>'+err.message+'</strong>';
+    }
+  }
+
+  const dateInput=document.getElementById('seatDate');
+  if(dateInput && !dateInput.value){
+    const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+    dateInput.value=d.toISOString().slice(0,10);
+  }
+  const statusDateInput=document.getElementById('statusDate');
+  if(statusDateInput && !statusDateInput.value){
+    const d2=new Date(); d2.setMinutes(d2.getMinutes()-d2.getTimezoneOffset());
+    statusDateInput.value=d2.toISOString().slice(0,10);
+  }
+
+</script>
+</body>
+</html>
