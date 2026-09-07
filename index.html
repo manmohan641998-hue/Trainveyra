@@ -559,6 +559,7 @@ footer{background:rgba(1,8,15,.7)}
   let showAllStops=false;      // hide non-halt "crossing" stations by default
   let lastRenderedStops=null, lastRenderedMeta=null, lastCurrentLatLng=null;
   let lastSearchedTrainNo=null, lastRouteData=null;
+  let lastRouteGeometry=null;
 
   function initLiveMap(){
     const el = document.getElementById('liveMap');
@@ -587,7 +588,7 @@ footer{background:rgba(1,8,15,.7)}
   // stops: [{lat,lng,stationName,stationCode,status,isHalt,platform}] in route order
   // currentPos: [lat,lng] interpolated live position
   // meta: {number, name, speed, currentName, nextName, atStation}
-  function renderRouteOnMap(stops, currentPos, meta){
+  function renderRouteOnMap(stops, currentPos, meta, geometryCoords){
     if(!liveMap) return;
     lastRenderedStops=stops; lastRenderedMeta=meta;
     if(routeLine) liveMap.removeLayer(routeLine);
@@ -602,7 +603,11 @@ footer{background:rgba(1,8,15,.7)}
     // once zoomed out. Non-halt points are still shown as small dots (see below); they just
     // don't get connected into the route line.
     const haltCoords = stops.filter(s=>s.isHalt!==false).map(s=>[s.lat,s.lng]);
-    routeLine = L.polyline(haltCoords.length>1?haltCoords:coords, {color:'#1878ff', weight:3, opacity:.85, lineJoin:'round', smoothFactor:1}).addTo(liveMap);
+    // Prefer RailRadar's real track geometry (high-density GIS LineString) so the blue
+    // route follows the railway track instead of drawing straight station-to-station chords.
+    // Fall back to halt coordinates only if geometry is unavailable.
+    const trackCoords = Array.isArray(geometryCoords) && geometryCoords.length > 1 ? geometryCoords : (haltCoords.length>1 ? haltCoords : coords);
+    routeLine = L.polyline(trackCoords, {color:'#1878ff', weight:4, opacity:.95, lineJoin:'round', lineCap:'round', smoothFactor:.35}).addTo(liveMap);
 
     startMarker = L.marker(coords[0], {icon:startIcon()}).addTo(liveMap)
       .bindTooltip(stops[0].stationName||'Start', {permanent:true, direction:'top', offset:[0,-6], className:'station-tt'});
@@ -747,6 +752,19 @@ footer{background:rgba(1,8,15,.7)}
     const params = { includeCoordinates:true, haltsOnly: !showAllStops };
     if(dateVal) params.date=dateVal;
     const data = await railradarGet('/trains/'+number+'/live', params);
+    // Fetch the actual railway track geometry separately. The live endpoint gives station
+    // points, while /route provides the high-density GIS LineString for the map.
+    let geometryCoords=null;
+    try{
+      const geo=await railradarGet('/trains/'+number+'/route', {format:'geojson', stops:false});
+      const raw=geo && geo.geojson && geo.geojson.geometry && geo.geojson.geometry.coordinates;
+      if(Array.isArray(raw)){
+        geometryCoords=raw.filter(c=>Array.isArray(c)&&c.length>=2).map(c=>[Number(c[1]),Number(c[0])]).filter(c=>Number.isFinite(c[0])&&Number.isFinite(c[1]));
+      }
+    }catch(e){
+      geometryCoords=null;
+    }
+    lastRouteGeometry=geometryCoords;
     const t=data.train||{};
     titleEl.textContent = number+' '+(t.name||data.trainName||'');
     const cur=data.currentLocation||{};
@@ -784,17 +802,23 @@ footer{background:rgba(1,8,15,.7)}
       const prevC=withCoords.find(s=>s.stationCode===prevCode);
       const nextC=withCoords.find(s=>s.stationCode===nextCode);
       let currentLatLng;
-      if(prevC && nextC){
-        const p=cur.segmentProgress!=null?cur.segmentProgress:0.5;
+      // Never invent a 50% position when RailRadar already gives the actual coordinates.
+      // This fixes the train appearing ahead/behind the station while it is at a halt.
+      const liveCoords = cur.coordinates && Number.isFinite(Number(cur.coordinates.lat)) && Number.isFinite(Number(cur.coordinates.lng))
+        ? [Number(cur.coordinates.lat), Number(cur.coordinates.lng)] : null;
+      if(liveCoords){
+        currentLatLng=liveCoords;
+      } else if(prevC && nextC && cur.segmentProgress!=null){
+        const p=Math.max(0,Math.min(1,Number(cur.segmentProgress)));
         currentLatLng=[ prevC.lat+(nextC.lat-prevC.lat)*p, prevC.lng+(nextC.lng-prevC.lng)*p ];
       } else {
         const curStop=prevC || withCoords[0];
-        currentLatLng=[curStop.lat, curStop.lng];
+        currentLatLng=[curStop.lat,curStop.lng];
       }
       lastCurrentLatLng=currentLatLng;
       renderRouteOnMap(withCoords, currentLatLng, {
         number, name:t.name, speed:speedKmh, currentName, nextName, atStation
-      });
+      }, geometryCoords);
     }
   }
 
@@ -861,7 +885,7 @@ footer{background:rgba(1,8,15,.7)}
           return `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #16324c">
             <strong>Passenger ${p.serialNumber||p.passengerNumber||(i+1)}</strong><br>
             Booking: ${booking} → Current: <strong style="color:${color}">${current}</strong><br>
-            Seat: <strong>${seat}</strong>
+            Seat / Coach: <strong style="color:${color}">${seat}</strong>
           </div>`;
         }).join('');
       }
@@ -879,9 +903,12 @@ footer{background:rgba(1,8,15,.7)}
           const avl = await railradarGet('/trains/'+train.number+'/seats', {
             source: source.code, destination: destination.code, journeyDate, classCode: journeyClass, quotaCode: quotaForAvl
           });
-          const rows=(avl.avlDayList||[]).slice(0,3).map(d=>
-            `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${d.availablityDate}</span><span>${seatStatusBadge(d.availablityStatus)}</span></div>`
-          ).join('') || `No live availability found for ${journeyClass} / ${quotaForAvl} on this route.`;
+          const pnrAvailability = Array.isArray(avl.avlDayList) ? avl.avlDayList : (Array.isArray(avl.availability) ? avl.availability : (Array.isArray(avl.availabilityList) ? avl.availabilityList : []));
+          const rows=pnrAvailability.slice(0,3).map(d=>{
+            const day=d.availablityDate || d.availabilityDate || d.date || d.journeyDate || '';
+            const status=d.availablityStatus || d.availabilityStatus || d.status || d.value || '';
+            return `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${day||'—'}</span><span>${seatStatusBadge(status)}</span></div>`;
+          }).join('') || `No live availability data returned for ${journeyClass} / ${quotaForAvl} on this route.`;
           document.getElementById('pnrSeatAvl').innerHTML = `<strong style="color:#dce8f6">Live seat availability (${journeyClass} • ${quotaForAvl})</strong>${rows}`;
         }catch(e){
           document.getElementById('pnrSeatAvl').innerHTML = `<span style="color:#9db1c9">Could not load live seat availability: ${e.message}</span>`;
@@ -1028,9 +1055,12 @@ footer{background:rgba(1,8,15,.7)}
       const data=await railradarGet('/trains/'+trainNo+'/seats', {
         source:f.code, destination:t.code, journeyDate:date, classCode:cls, quotaCode:quota
       });
-      const rows=(data.avlDayList||[]).map(d=>
-        `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #16324c"><span>${d.availablityDate}</span><span>${seatStatusBadge(d.availablityStatus)}</span></div>`
-      ).join('') || `<div>No availability found for ${cls} / ${quota} quota on this route and date. Try a different class or quota — some trains only run certain classes on part of the route.</div>`;
+      const availabilityList = Array.isArray(data.avlDayList) ? data.avlDayList : (Array.isArray(data.availability) ? data.availability : (Array.isArray(data.availabilityList) ? data.availabilityList : []));
+      const rows=availabilityList.map(d=>{
+        const day=d.availablityDate || d.availabilityDate || d.date || d.journeyDate || '';
+        const status=d.availablityStatus || d.availabilityStatus || d.status || d.value || '';
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #16324c"><span>${day||'—'}</span><span>${seatStatusBadge(status)}</span></div>`;
+      }).join('') || `<div>No availability data returned by RailRadar for ${cls} / ${quota} on this route/date. Try another class or quota.</div>`;
       out.innerHTML=`<strong>${data.trainName||''} (${data.trainNumber||trainNo})</strong><br>
         ${f.name} (${f.code}) → ${t.name} (${t.code}) • Class ${data.classCode||cls} • Quota ${data.quotaCode||quota}
         <div style="margin-top:8px">${rows}</div>`;
