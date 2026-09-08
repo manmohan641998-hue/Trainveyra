@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TrainVeyra — Live Train Status, Radar, PNR & Seat Availability</title>
-  <meta name="description" content="TrainVeyra is a modern Indian railway tracking platform for live train status, train radar, station status, timetables, PNR status and seat availability.">
+  <title>TrainVeyra — Train Search, Live Status, PNR & Chart Vacancy</title>
+  <meta name="description" content="TrainVeyra is a modern Indian railway information platform for train search, live train status, PNR status, coach position and chart vacancy.">
   <meta name="keywords" content="train live status, train running status, train radar, Indian Railways, PNR status, seat availability, train timetable, station status, train tracker">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#061426">
@@ -151,6 +151,8 @@
     .station-pin.green{background:#22c55e}.station-pin.red{background:#ef4444}
     .live-time-card{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:8px 0 12px;padding:10px 12px;background:rgba(10,31,51,.72);border:1px solid #163b5a;border-radius:10px}
     .live-time-card .time-block{min-width:105px}.live-time-card .time-label{display:block;font-size:10px;color:#7895ae;text-transform:uppercase;letter-spacing:.04em}.live-time-card .time-value{display:block;font-weight:800;color:#f4f8fc;margin-top:2px}.live-time-card .time-status{display:block;font-size:10px;margin-top:2px}
+
+    .ad-slot{padding:14px 0}.ad-placeholder{min-height:96px;border:1px dashed #28567b;border-radius:14px;background:linear-gradient(135deg,rgba(7,26,46,.82),rgba(5,19,34,.92));display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;text-align:center;padding:14px 18px;box-shadow:0 10px 30px rgba(0,0,0,.18)}.ad-placeholder a{color:#dcecff;font-size:14px;font-weight:700}.ad-placeholder a:hover{color:#5fc0ff}.ad-placeholder small{display:block;width:100%;color:#6f8ba5;font-size:10px}.ad-label{font-size:9px;letter-spacing:1.2px;color:#607b94;border:1px solid #173a59;border-radius:99px;padding:4px 7px}.ad-slot-top{padding-top:10px;padding-bottom:4px}.ad-slot-bottom{padding-top:4px;padding-bottom:16px}
     .coach-position-card{width:100%;background:#081c31;border:1px solid #1b4668;border-radius:11px;padding:10px 12px;margin-top:2px}.coach-position-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.coach-position-title{font-size:11px;color:#8fa8c0;text-transform:uppercase;letter-spacing:.04em}.coach-position-platform{font-size:11px;color:#48e994;font-weight:800}.coach-formation{margin-top:8px;display:flex;gap:6px;overflow:auto;padding-bottom:2px}.coach-chip{flex:0 0 auto;padding:6px 8px;border:1px solid #28567b;background:#0a2038;border-radius:8px;color:#dce8f6;font-size:11px;font-weight:800}.coach-chip small{display:block;color:#6f91ad;font-size:9px;font-weight:600;margin-top:2px}.coach-position-note{margin-top:7px;font-size:10px;color:#7895ae}
     .stop-time{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:10px;color:#8fa8c0}.stop-time b{color:#dce8f6}.stop-time .actual{font-weight:800}.stop-time .actual.late{color:#ff5b5b}.stop-time .actual.early,.stop-time .actual.ontime{color:#32d978}.departure-live{display:inline-flex;align-items:center;gap:4px}.departure-live-dot{width:6px;height:6px;border-radius:50%;background:#32d978;box-shadow:0 0 7px #32d978;animation:blink 1s infinite}.departure-live-dot.late{background:#ff4d4d;box-shadow:0 0 7px #ff4d4d}.departure-live-dot.early{background:#32d978;box-shadow:0 0 7px #32d978}.stop-delay{font-weight:700}.stop-delay.late{color:#ff5b5b}.stop-delay.early{color:#32d978}.stop-delay.ontime{color:#32d978}
     .stop-dot{width:9px;height:9px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.3)}
@@ -161,7 +163,7 @@
     /* Clean radar: station markers stay hidden until the user explicitly asks for all stations. */
     .radar-station-hidden{display:none!important}
     .station-label-hidden{display:none!important}
-    .seat-results-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    .train-search-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.train-search-summary>div{background:#081f35;border:1px solid #163b5d;border-radius:10px;padding:10px}.train-search-summary b{display:block;font-size:10px;color:#7895ae;text-transform:uppercase;letter-spacing:.05em}.train-search-summary span{display:block;margin-top:4px;font-size:12px;color:#dce8f6;font-weight:700}.train-search-coach-host{margin-top:10px}.seat-results-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
     .seat-route-title{font-size:14px;font-weight:800;color:#fff}
     .seat-route-sub{font-size:11px;color:#8fa8c0;margin-top:3px}
     .seat-table{width:100%;border-collapse:separate;border-spacing:0 7px;font-size:12px}
@@ -219,7 +221,7 @@
       .hero{padding:45px 0 25px}.hero:after{display:none}h1{font-size:43px;letter-spacing:-2px}.hero p{font-size:15px}
       .search{display:flex}.search input{font-size:13px}.search button{padding:0 15px}
       .feature-row,.grid4{grid-template-columns:1fr}.feature{min-height:90px}.status-card{position:relative;right:auto;bottom:auto;margin:12px;max-width:calc(100% - 24px);width:auto}.train-visual{height:225px}
-      section{padding:48px 0}.section-head{display:block}.section-head h2{font-size:25px}.footer-grid{grid-template-columns:1fr}.copyright{display:block;line-height:1.7}
+      section{padding:48px 0}.train-search-summary{grid-template-columns:1fr}.section-head{display:block}.section-head h2{font-size:25px}.footer-grid{grid-template-columns:1fr}.copyright{display:block;line-height:1.7}
     }
   
 /* ===== TrainVeyra Premium 2026 Layer ===== */
@@ -328,7 +330,10 @@ footer{background:rgba(1,8,15,.7)}
 @media(max-width:500px){.premium-strip{grid-template-columns:1fr 1fr}.map{min-height:390px!important}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-  </style>
+  
+    /* The long SEO/info panels are intentionally hidden to keep the homepage compact. */
+    #seo-pages,#seo-hub{display:none!important}
+</style>
 
   <script type="application/ld+json">
   {
@@ -372,12 +377,23 @@ footer{background:rgba(1,8,15,.7)}
       <a class="active" href="#home">Home</a>
       <a href="#" onclick="openModal('liveStatusModal');return false">Live Train Status</a>
       <a href="#" onclick="openModal('pnrModal');return false">PNR Status</a>
-      <a href="#" onclick="openModal('seatModal');return false">Seat Availability</a>
+      <a href="#" onclick="openModal('seatModal');return false">Train Search</a>
       <a href="#" onclick="openModal('chartModal');return false">Chart Vacancy</a>
     </nav>
     <div class="nav-actions"><button class="icon-btn" aria-label="Toggle theme" onclick="toggleTheme()">☾</button><button class="icon-btn" aria-label="Menu" onclick="openModal('menuModal')">☰</button></div>
   </div>
 </header>
+
+<!-- AD SLOT 1: Replace the content inside this box with your own ad HTML/code. -->
+<section class="ad-slot ad-slot-top" aria-label="Advertisement">
+  <div class="container">
+    <div class="ad-placeholder">
+      <span class="ad-label">ADVERTISEMENT</span>
+      <a href="#" onclick="return false" aria-label="Demo travel advertisement">🏨 Hotel &nbsp;•&nbsp; 🚌 Bus Deals &nbsp;•&nbsp; <b>Travel Smarter</b></a>
+      <small>Replace this demo with your own ad HTML or ad-network code.</small>
+    </div>
+  </div>
+</section>
 
 <main id="home">
   <section class="hero">
@@ -385,10 +401,10 @@ footer{background:rgba(1,8,15,.7)}
       <div>
         <div class="eyebrow"><span class="dot"></span> Modern Indian Railway Tracking</div>
         <h1>India’s Smart Train <span>Tracking</span> Platform</h1>
-        <p>Live train location, real-time status, station information, timetable, PNR and seat availability — designed to be simple, fast and mobile friendly.</p>
+        <p>Search trains, view live running status, check PNR and find coach positions — designed to be simple, fast and mobile friendly.</p>
         <div class="hero-actions">
           <button class="primary" type="button" onclick="openModal('liveStatusModal')">🚆 Live Train Status</button>
-          <button class="hero-secondary" type="button" onclick="openModal('seatModal')">💺 Seat Availability</button>
+          <button class="hero-secondary" type="button" onclick="openModal('seatModal')">🔎 Train Search</button>
         </div>
       </div>
 
@@ -430,9 +446,9 @@ footer{background:rgba(1,8,15,.7)}
           <button class="go tool-action" type="button" onclick="openModal('pnrModal')">Check PNR →</button>
         </article>
         <article class="tool-card" id="seat">
-          <div class="tool-symbol">💺</div><h3>Seat Availability</h3>
-          <p>Check live availability by train, journey date, class and quota between two stations.</p>
-          <button class="go tool-action" type="button" onclick="openModal('seatModal')">Check Seats →</button>
+          <div class="tool-symbol">🔎</div><h3>Train Search</h3>
+          <p>Search trains between stations or open a train directly to see route, platform and coach position.</p>
+          <button class="go tool-action" type="button" onclick="openModal('seatModal')">Search Trains →</button>
         </article>
         <article class="tool-card" id="chart-vacancy">
           <div class="tool-symbol">📊</div><h3>Chart Vacancy</h3>
@@ -484,41 +500,16 @@ footer{background:rgba(1,8,15,.7)}
     </div>
   </section>
 
-  <section>
-    <div class="container seo-box">
-      <h2>TrainVeyra — Live Train Status, PNR, Seat Availability & Chart Vacancy</h2>
-      <p>TrainVeyra is a fast, mobile-first railway information platform built on live, real-time railway data.</p>
-      <ul>
-        <li>Search Indian trains by number or name.</li>
-        <li>Live train running status and station-wise journey progress.</li>
-        <li>Live PNR, seat availability and chart-vacancy tools.</li>
-        <li>SEO-ready metadata, canonical URL, structured data and descriptive content.</li>
-      </ul>
-    </div>
-  </section>
 </main>
 
-
-  <section id="seo-pages">
-    <div class="container seo-box">
-      <h2>Indian Train Information Hub</h2>
-      <p>Explore dedicated TrainVeyra information pages for train running status, live train tracking, railway stations, train timetables, PNR information and seat availability. These pages are designed as search-friendly entry points for Indian railway travellers.</p>
-      <div class="seo-links">
-        <a href="#" onclick="openModal('liveStatusModal');return false">Live Train Status</a>
-        <a href="#" onclick="openModal('pnrModal');return false">PNR Status</a>
-        <a href="#" onclick="openModal('seatModal');return false">Seat Availability</a>
-        <a href="#" onclick="openModal('chartModal');return false">Chart Vacancy</a>
-      </div>
-    </div>
-  </section>
 
 
 <div class="modal modal-wide" id="seatModal">
   <div class="modal-box">
     <button class="close" onclick="closeModals()">×</button>
     <div class="section-head modal-section-head">
-      <div><h2>💺 Seat Availability</h2>
-      <p>Enter a train number, or leave it blank to find trains between two stations.</p></div>
+      <div><h2>🔎 Train Search</h2>
+      <p>Search by train number or find trains between two stations. Results include platform and coach position when available.</p></div>
       <span class="live-pill"><i></i> SMART SEARCH</span>
     </div>
     <div class="form">
@@ -543,16 +534,21 @@ footer{background:rgba(1,8,15,.7)}
           <option value="GN">General (GN)</option><option value="TQ">Tatkal (TQ)</option><option value="PT">Premium Tatkal (PT)</option><option value="LD">Ladies (LD)</option><option value="SS">Senior Citizen (SS)</option>
         </select>
       </div>
-      <button class="primary" onclick="checkSeatAvailability()">Check Seat Availability / Find Trains</button>
+      <button class="primary" onclick="checkSeatAvailability()">Search Train / Find Trains</button>
       <div id="seatResult" class="notice" style="display:none"></div>
     </div>
   </div>
 </div>
 
-<section id="seo-hub">
-  <div class="container seo-box">
-    <h2>TrainVeyra Railway Information Hub</h2>
-    <p>TrainVeyra combines live train status, PNR status, seat availability and chart-vacancy tools into one responsive railway information website.</p>
+
+<!-- AD SLOT 2: Replace the content inside this box with your own ad HTML/code. -->
+<section class="ad-slot ad-slot-bottom" aria-label="Advertisement">
+  <div class="container">
+    <div class="ad-placeholder">
+      <span class="ad-label">ADVERTISEMENT</span>
+      <a href="#" onclick="return false" aria-label="Demo travel advertisement">🏨 Hotels &nbsp;•&nbsp; 🚌 Bus Tickets &nbsp;•&nbsp; <b>Travel Deals</b></a>
+      <small>Replace this demo with your own ad HTML or ad-network code.</small>
+    </div>
   </div>
 </section>
 
@@ -561,7 +557,7 @@ footer{background:rgba(1,8,15,.7)}
     <div class="footer-grid">
       <div><h4>TrainVeyra</h4><div>Track • Explore • Travel</div><p>Modern tools for Indian train journeys.</p></div>
       <div><h4>Train Tools</h4><a href="#" onclick="openModal('liveStatusModal');return false">Live Train Status</a><a href="#" onclick="openModal('chartModal');return false">Chart Vacancy</a></div>
-      <div><h4>Travel Tools</h4><a href="#" onclick="openModal('pnrModal');return false">PNR Status</a><a href="#" onclick="openModal('seatModal');return false">Seat Availability</a></div>
+      <div><h4>Travel Tools</h4><a href="#" onclick="openModal('pnrModal');return false">PNR Status</a><a href="#" onclick="openModal('seatModal');return false">Train Search</a></div>
       <div><h4>Information</h4><a href="#home">About TrainVeyra</a><a href="#home">Privacy Policy</a><a href="#home">Terms</a></div>
     </div>
     <div class="copyright"><span>© 2026 TrainVeyra.in — All rights reserved.</span><span>Live data, updated in real time</span></div>
@@ -587,7 +583,7 @@ footer{background:rgba(1,8,15,.7)}
     <div id="chartResult" class="notice" style="display:none"></div>
   </div>
 </div></div>
-<div class="modal" id="menuModal"><div class="modal-box"><button class="close" onclick="closeModals()">×</button><h2>TrainVeyra</h2><div class="form"><button class="primary" onclick="closeModals();openModal('liveStatusModal')">Live Train Status</button><button class="primary" onclick="closeModals();openModal('pnrModal')">PNR Status</button><button class="primary" onclick="closeModals();openModal('seatModal')">Seat Availability</button><button class="primary" onclick="closeModals();openModal('chartModal')">Chart Vacancy</button></div></div></div>
+<div class="modal" id="menuModal"><div class="modal-box"><button class="close" onclick="closeModals()">×</button><h2>TrainVeyra</h2><div class="form"><button class="primary" onclick="closeModals();openModal('liveStatusModal')">Live Train Status</button><button class="primary" onclick="closeModals();openModal('pnrModal')">PNR Status</button><button class="primary" onclick="closeModals();openModal('seatModal')">Train Search</button><button class="primary" onclick="closeModals();openModal('chartModal')">Chart Vacancy</button></div></div></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
@@ -1320,22 +1316,62 @@ footer{background:rgba(1,8,15,.7)}
 
   function fmtHM(hhmm){ return hhmm||'—'; }
 
-  // Renders the list of trains found between two stations, each with a "Check Seats" button
-  // that fills the train number and re-runs the seat lookup for that specific train.
+  // Renders trains found between two stations. Selecting a train opens its route,
+  // platform and coach-position details without requiring a seat-availability lookup.
   function renderTrainList(list, f, t, date, cls){
     if(!list || !list.length) return '<div>No trains found on this route for the selected date.</div>';
     return list.map(item=>{
       const tr=item.train||{};
       const dep=(item.from||{}).departure, arr=(item.to||{}).arrival;
       const live=item.live||{};
-      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #16324c">
-        <div>
-          <strong>${tr.number||''} ${tr.name||''}</strong><br>
-          <span style="color:#8fa8c0;font-size:12px">${fmtHM(dep)} → ${fmtHM(arr)}${tr.type?(' • '+tr.type):''}${live.delayMinutes!=null?(' • '+overallDelayLabel(live.delayMinutes)):''}</span>
+      const safe=String(tr.number||'').replace(/[^0-9]/g,'');
+      return `<div style="padding:12px 0;border-bottom:1px solid #16324c">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div><strong>${tr.number||''} ${tr.name||''}</strong><br>
+            <span style="color:#8fa8c0;font-size:12px">${fmtHM(dep)} → ${fmtHM(arr)}${tr.type?(' • '+tr.type):''}${live.delayMinutes!=null?(' • '+overallDelayLabel(live.delayMinutes)):''}</span>
+          </div>
+          <button class="primary" style="padding:8px 12px;white-space:nowrap" onclick="openTrainSearchResult('${safe}','${f.code}','${t.code}','${date}')">View Train</button>
         </div>
-        <button class="primary" style="padding:8px 12px;white-space:nowrap" onclick="document.getElementById('seatTrainNo').value='${tr.number}'; checkSeatAvailability();">Check Seats</button>
+        <div id="trainSearchPreview_${safe}" style="margin-top:8px;color:#7895ae;font-size:11px">Platform & coach position will load when you open this train.</div>
       </div>`;
     }).join('');
+  }
+
+  async function openTrainSearchResult(trainNo, fromCode, toCode, date){
+    const out=document.getElementById('seatResult');
+    out.style.display='block';
+    out.innerHTML='<div class="seat-loading">Loading train details, platform and coach position…</div>';
+    try{
+      let schedule={};
+      try{ schedule=await railradarGet('/trains/'+encodeURIComponent(trainNo)+'/schedule',{journeyDate:date}); }catch(e){}
+      const trainName=schedule?.trainName||schedule?.train?.name||'';
+      const source=schedule?.source||schedule?.train?.source||{};
+      const destination=schedule?.destination||schedule?.train?.destination||{};
+      const stationCode=fromCode || source.code;
+      const stationName=source.name || fromCode;
+      out.innerHTML=`<div class="seat-results-head"><div><div class="seat-route-title">${trainNo} ${trainName}</div><div class="seat-route-sub">${source.name||fromCode} → ${destination.name||toCode} • ${date}</div></div><span class="live-pill"><i></i> TRAIN DETAILS</span></div>
+        <div class="train-search-summary"><div><b>Boarding</b><span>${source.name||fromCode||'—'}</span></div><div><b>Destination</b><span>${destination.name||toCode||'—'}</span></div><div><b>Journey Date</b><span>${date}</span></div></div>
+        <div id="trainSearchCoachHost" class="train-search-coach-host"><div class="seat-loading">Loading platform & coach position…</div></div>`;
+      await loadCoachPositionInto('trainSearchCoachHost',trainNo,stationCode,stationName);
+    }catch(err){ out.innerHTML='<strong>Could not load train details.</strong><br><span style="color:#9db1c9">'+err.message+'</span>'; }
+  }
+
+  async function loadCoachPositionInto(hostId, number, stationCode, stationName){
+    const host=document.getElementById(hostId); if(!host||!stationCode)return;
+    try{
+      const key=coachPositionKey(number,stationCode);
+      let item=coachPositionCache.get(key);
+      if(!item){
+        const data=await railradarGet('/trains/'+encodeURIComponent(number)+'/coaches/'+encodeURIComponent(stationCode));
+        const payload=data?.data||data||{};
+        item={number,stationCode,stationName:payload.stationName||stationName||stationCode,platform:payload.platform||null,direction:payload.direction||null,formation:payload.formation||'',coaches:Array.isArray(payload.coaches)?payload.coaches:[]};
+        coachPositionCache.set(key,item);
+      }
+      const chips=(item.coaches||[]).map(c=>`<div class="coach-chip">${c.code||c.name||'Coach'}<small>Position ${c.position!=null?c.position:'—'}${c.classType&&c.classType!==c.code?' • '+c.classType:''}</small></div>`).join('');
+      host.innerHTML=`<div class="coach-position-card"><div class="coach-position-head"><span class="coach-position-title">Coach Position • ${item.stationName||stationCode}</span><span class="coach-position-platform">${item.platform?'Platform '+item.platform:'Platform —'}</span></div>${item.direction?`<div class="coach-position-note">Rake direction: <b style="color:#dce8f6">${item.direction}</b></div>`:''}<div class="coach-formation">${chips||'<span class="coach-position-note">Coach position data not returned.</span>'}</div><div class="coach-position-note">Positions are shown from the engine/rake sequence for the selected station.</div></div>`;
+    }catch(err){
+      host.innerHTML=`<div class="coach-position-card"><div class="coach-position-head"><span class="coach-position-title">Coach Position</span><span class="coach-position-platform">Platform —</span></div><div class="coach-position-note">Coach position could not be loaded for ${stationName||stationCode}. ${err.message||''}</div></div>`;
+    }
   }
 
   // ConfirmTkt-style seat availability presentation.
@@ -1428,9 +1464,9 @@ footer{background:rgba(1,8,15,.7)}
         <div style="display:flex;justify-content:space-between;font-size:11px;color:#66737f;margin-top:2px"><span>${f.name}</span><span>${t.name}</span></div>
         ${renderSeatDateTabs(dates,selectedDate,results,'pickSeatDate')}
       </div>
-      <div class="seat-toolbar"><span><b>Classes</b> • ${document.getElementById('seatQuota')?.selectedOptions?.[0]?.textContent||'General'}</span><button class="seat-refresh" type="button" onclick="checkSeatAvailability()">↻ Refresh Availability</button></div>
+      <div class="seat-toolbar"><span><b>Classes</b> • ${document.getElementById('seatQuota')?.selectedOptions?.[0]?.textContent||'General'}</span><button class="seat-refresh" type="button" onclick="checkSeatAvailability()">↻ Refresh Train Search</button></div>
       <div id="seatClassResults">${renderSeatClassBoxes(results,selectedDate)}</div>
-      <div class="seat-card-note">Live railway availability • Status is taken from the connected railway data. Fare is shown only when the API provides it.</div>
+      <div class="seat-card-note">Live railway data • Route, platform and coach-position details are shown when the connected source provides them.</div>
     </div>`;
   }
 
@@ -1488,30 +1524,9 @@ footer{background:rgba(1,8,15,.7)}
       out.innerHTML='<strong>Please enter a valid 4–5 digit train number.</strong>'; return;
     }
 
-    out.innerHTML=cls==='ALL' ? '<div class="seat-loading">Checking live availability class-by-class (rate limit safe)…</div>' : '<div class="seat-loading">Checking live availability…</div>';
-    try{
-      let schedule=null, trainName='';
-      try{
-        const routeData=await railradarGet('/trains/between/'+encodeURIComponent(f.code)+'/'+encodeURIComponent(t.code),{date,live:true});
-        const found=(routeData?.trains||[]).find(x=>String(x?.train?.number||'')===trainNo);
-        if(found){ schedule=found; trainName=found.train?.name||''; }
-      }catch(e){}
-
-      const codes=cls==='ALL'?classOrder():[cls];
-      const settled=await Promise.all(codes.map(c=>fetchSeatForClass(trainNo,f,t,date,c,quota)));
-      const results={};
-      settled.forEach(r=>{ if(r.rows.length) results[r.code]=r.rows; });
-      const first=settled.find(r=>r.data?.trainName||r.data?.train?.name);
-      if(!trainName) trainName=first?.data?.trainName||first?.data?.train?.name||'';
-      const ctx={f,t,trainNo,trainName,selectedDate:date,results,schedule};
-      window.__seatCtx=ctx;
-      if(!Object.keys(results).length){
-        const errors=settled.filter(x=>x.error).map(x=>`${x.code}: ${x.error}`).join('<br>');
-        out.innerHTML=`<div class="seat-search-card"><div class="seat-loading"><b>No live availability returned.</b>${errors?'<br><small>'+errors+'</small>':''}<br>Try another class, quota or journey date.</div></div>`;
-        return;
-      }
-      out.innerHTML=renderSeatAvailabilityCard(ctx);
-    }catch(err){ out.innerHTML='<strong>Could not load seat availability.</strong><br><span style="color:#9db1c9">'+err.message+'</span>'; }
+    // Train Search mode: the existing working From/To search remains the data source,
+    // but a selected train now opens route + platform + coach-position details.
+    await openTrainSearchResult(trainNo,f.code,t.code,date);
   }
 
   const dateInput=document.getElementById('seatDate');
